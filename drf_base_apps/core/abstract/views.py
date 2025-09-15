@@ -1520,6 +1520,7 @@ def get_model_serializer_subclasses():
     Return a list of subclasses of DRF serializers.
     @return: A list of model serializer subclasses schemas.
     """
+
     # Get all Schemas
     model_serializer_subclasses = []
     for app in apps.get_app_configs():
