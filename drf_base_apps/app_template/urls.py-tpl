@@ -1,0 +1,24 @@
+"""config URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/3.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from {{app_name}} import views
+    2. Add a URL to urlpatterns:  path('', views.{{app_name | title}}Api, name='{{app_name}}')
+Class-based views
+    1. Add an import:  from {{app_name}} import {{app_name | title}}
+    2. Add a URL to urlpatterns:  path('', {{app_name | title}}Api.as_view(), name='{{app_name}}')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('{{app_name}}/', include('{{app_name}}.another_app.urls'))
+"""
+from django.urls import path
+from .views import {{app_name | title}}Api, {{app_name | title}}DetailApi
+from .constants import {{app_name | title}}URIs
+
+
+urlpatterns = [
+    path('', {{app_name | title}}Api.as_view(), name="{{app_name}}-list-create"),
+    path('<uuid:id>/', {{app_name | title}}DetailApi.as_view(), name="{{app_name}}-detail-put"),
+]

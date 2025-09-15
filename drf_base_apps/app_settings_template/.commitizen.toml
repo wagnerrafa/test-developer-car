@@ -1,0 +1,45 @@
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+version_files = [
+    "pyproject.toml:version"
+]
+
+[tool.commitizen.customize]
+message_template = "{{change_type}}{{scope}}: {{message}}"
+example = "feat: adiciona nova funcionalidade"
+schema = "<type>(<scope>): <subject>"
+schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert|build|wip|hotfix|feature|bugfix)(\\([a-z-]+\\))?: .{1,72}$"
+
+[tool.commitizen.customize.questions]
+- type = "list"
+  name = "change_type"
+  choices = [
+    {value = "feat", name = "feat: Nova funcionalidade"},
+    {value = "fix", name = "fix: Correção de bug"},
+    {value = "docs", name = "docs: Documentação"},
+    {value = "style", name = "style: Formatação, espaços, etc."},
+    {value = "refactor", name = "refactor: Refatoração de código"},
+    {value = "perf", name = "perf: Melhoria de performance"},
+    {value = "test", name = "test: Testes"},
+    {value = "chore", name = "chore: Configurações, builds, etc."},
+    {value = "ci", name = "ci: CI/CD"},
+    {value = "revert", name = "revert: Reverter commit"},
+    {value = "build", name = "build: Sistema de build"},
+    {value = "wip", name = "wip: Trabalho em andamento"},
+    {value = "hotfix", name = "hotfix: Correção urgente"},
+    {value = "feature", name = "feature: Nova funcionalidade (sinônimo)"},
+    {value = "bugfix", name = "bugfix: Correção de bug (sinônimo)"}
+  ]
+  message = "Selecione o tipo de mudança:"
+
+- type = "input"
+  name = "scope"
+  message = "Escopo (opcional, ex: auth, cards, api):"
+
+- type = "input"
+  name = "subject"
+  message = "Descrição da mudança (máximo 72 caracteres):"
+  filter = "strip"
+  validate = "len(subject) <= 72" 

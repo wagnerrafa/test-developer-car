@@ -1,0 +1,87 @@
+fail_fast: true
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+        exclude: >
+          (?x)^(
+              package-lock\.json|
+              coverage\.xml|
+              coverage\.html|
+              .*\.coverage
+          )$
+      - id: fix-byte-order-marker
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: debug-statements
+      - id: detect-private-key
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: "1.15.0"
+    hooks:
+      - id: django-upgrade
+        args: [--target-version, "5.0"]
+  - repo: local
+    hooks:
+      - id: ruff-lint
+        name: ruff-lint
+        entry: poetry run ruff check . --config=pyproject.toml
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: check-print-statements
+        name: check-print-statements
+        entry: >
+          bash -c 'grep -r --include="*.py" --exclude-dir="venv" --exclude-dir=".venv" --exclude-dir="migrations" --exclude-dir="__pycache__" --exclude-dir=".git" --exclude-dir="ignore_dirs" --exclude-dir="scripts" "print(" . || exit 0; if [ $? -eq 0 ]; then echo "❌ Print statements encontrados! Remova todos os prints antes de fazer commit." && echo "🔍 Arquivos com prints:" && grep -r --include="*.py" --exclude-dir="venv" --exclude-dir=".venv" --exclude-dir="migrations" --exclude-dir="__pycache__" --exclude-dir=".git" --exclude-dir="ignore_dirs" --exclude-dir="scripts" -n "print(" . && exit 1; fi'
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: bandit-security
+        name: bandit-security
+        entry: make security
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: commit-msg-format
+        name: commit-msg-format
+        entry: >
+          bash -c 'grep -E "^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert|build|wip|hotfix|feature|bugfix)(\([a-z0-9-]+\))?: .{1,100}$" "$1" > /dev/null || (echo "❌ Formato de commit inválido!" && echo "✅ Formato correto: tipo(escopo): descrição" && echo "📝 Tipos válidos: feat, fix, docs, style, refactor, perf, test, chore, ci, revert, build, wip, hotfix, feature, bugfix" && echo "💡 Exemplo: feat: adiciona nova funcionalidade" && echo "🔧 Use: make commit-all (para menu interativo)" && exit 1)'
+        language: system
+        stages: [commit-msg]
+        args: ["$1"]
+      - id: eslint
+        name: eslint-local
+        entry: npm run lint
+        language: system
+        types: [file]
+        files: \.(js|jsx|ts|tsx)$
+        exclude: >
+          (?x)^(
+            .+\.config\.js|
+            .+\.setup\.js|
+            \.eslintrc\.js
+          )$
+        pass_filenames: true
+      - id: tsc
+        name: tsc-local
+        entry: npm run tsc
+        language: system
+        types: [file]
+        files: \.(ts|tsx)$
+        pass_filenames: false
+      - id: missing-migrations
+        name: missing-migrations-local
+        entry: poetry run python manage.py makemigrations --check
+        language: system
+        # Only run missing migration check if migration-generating files have changed:
+        files: (.*/?(settings|migrations|models)/.+|.+models\.py|.+constants\.py|.+choices\.py|.+pyproject\.toml)
+        pass_filenames: false
+      # Pre-push hooks
+      - id: workflows
+        name: Run workflows
+        entry: make workflows
+        language: system
+        stages: [pre-push]
+        pass_filenames: false

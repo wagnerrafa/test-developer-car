@@ -1,0 +1,4 @@
+from .constants import APP_NAME
+
+def get_app_name():
+    return APP_NAME

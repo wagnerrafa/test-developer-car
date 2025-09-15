@@ -1,0 +1,358 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} - Página Inicial</title>
+  <link rel="stylesheet" href="{% static 'base_django_static/css/django_index.css' %}">
+  <style>
+    .home-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding: 3rem 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-subtitle {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .hero-version {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      display: inline-block;
+      font-size: 0.9rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #667eea;
+    }
+
+    .feature-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+
+    .feature-description {
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .about-section {
+      background: #f8fafc;
+      padding: 3rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+    }
+
+    .about-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #1f2937;
+    }
+
+    .about-content {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      color: #4b5563;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .tech-stack {
+      background: white;
+      padding: 3rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+    }
+
+    .tech-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #1f2937;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .tech-item {
+      text-align: center;
+      padding: 1.5rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .tech-item:hover {
+      background: #e5e7eb;
+    }
+
+    .tech-name {
+      font-weight: bold;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .tech-description {
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .cta-section {
+      text-align: center;
+      padding: 3rem;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+    }
+
+    .cta-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .cta-description {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: white;
+      color: #059669;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+      transition: transform 0.3s ease;
+    }
+
+    .cta-button:hover {
+      transform: scale(1.05);
+    }
+
+    .navigation-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background: #2563eb;
+    }
+
+    .nav-link.secondary {
+      background: #6b7280;
+    }
+
+    .nav-link.secondary:hover {
+      background: #4b5563;
+    }
+
+    body {
+      height: auto;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+<div class="home-container">
+  <!-- Navegação -->
+  <div class="navigation-links">
+    <a href="{% url 'sobre_base_django' %}" class="nav-link">Sobre</a>
+    <a href="{% url 'privacidade' %}" class="nav-link secondary">Privacidade</a>
+  </div>
+
+  <!-- Seção Hero -->
+  <div class="hero-section">
+    <h1 class="hero-title">{{ app_name }}</h1>
+    <p class="hero-subtitle">Uma plataforma robusta e moderna para desenvolvimento web</p>
+    <div class="hero-version">Versão {{ current_version }}</div>
+  </div>
+
+  <!-- Seção de Recursos -->
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🚀</div>
+      <h3 class="feature-title">Performance</h3>
+      <p class="feature-description">
+        Arquitetura otimizada para máxima velocidade e eficiência,
+        garantindo uma experiência excepcional para seus usuários.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3 class="feature-title">Segurança</h3>
+      <p class="feature-description">
+        Implementação de melhores práticas de segurança, incluindo
+        autenticação robusta e proteção contra vulnerabilidades comuns.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3 class="feature-title">Responsivo</h3>
+      <p class="feature-description">
+        Design totalmente responsivo que funciona perfeitamente em
+        todos os dispositivos, desde smartphones até desktops.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3 class="feature-title">Escalável</h3>
+      <p class="feature-description">
+        Arquitetura modular que cresce com suas necessidades,
+        permitindo fácil manutenção e expansão.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛠️</div>
+      <h3 class="feature-title">Desenvolvimento</h3>
+      <p class="feature-description">
+        Ferramentas e estruturas que aceleram o desenvolvimento,
+        permitindo focar no que realmente importa.
+      </p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <h3 class="feature-title">Documentação</h3>
+      <p class="feature-description">
+        Documentação completa e exemplos práticos para facilitar
+        a implementação e manutenção.
+      </p>
+    </div>
+  </div>
+
+  <!-- Seção Sobre o Projeto -->
+  <div class="about-section">
+    <h2 class="about-title">Sobre o Projeto</h2>
+    <div class="about-content">
+      <p>
+        O {{ app_name }} é uma plataforma de desenvolvimento web que nasceu da necessidade
+        de ter uma base sólida e confiável para criar aplicações modernas. Nossa missão
+        é simplificar o processo de desenvolvimento, fornecendo uma arquitetura robusta
+        que permite aos desenvolvedores focar na criação de funcionalidades inovadoras.
+      </p>
+      <p>
+        Desenvolvido com as tecnologias mais modernas e seguras do mercado, nossa
+        plataforma oferece uma experiência de desenvolvimento excepcional, combinando
+        performance, segurança e facilidade de uso em uma solução completa.
+      </p>
+    </div>
+  </div>
+
+  <!-- Stack Tecnológico -->
+  <div class="tech-stack">
+    <h2 class="tech-title">Stack Tecnológico</h2>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="tech-name">Django</div>
+        <div class="tech-description">Framework web Python robusto e confiável</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Django REST</div>
+        <div class="tech-description">APIs RESTful poderosas e flexíveis</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">PostgreSQL</div>
+        <div class="tech-description">Banco de dados relacional de classe empresarial</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Redis</div>
+        <div class="tech-description">Cache e sessões de alta performance</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Docker</div>
+        <div class="tech-description">Containerização para deploy consistente</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-name">Tailwind CSS</div>
+        <div class="tech-description">Framework CSS utilitário e responsivo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="cta-section">
+    <h2 class="cta-title">Pronto para Começar?</h2>
+    <p class="cta-description">
+      Explore nossa plataforma e descubra como podemos transformar
+      seu processo de desenvolvimento
+    </p>
+    <a href="{% url 'sobre_base_django' %}" class="cta-button">Saiba Mais</a>
+  </div>
+</div>
+
+<script src="{% static 'base_django_static/js/django_index.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+"""
+This module defines a Api's classes that provides HTTP methods for managing {{app_name | title}} objects models.
+It is extended from an AbstractViewApi class and includes a CheckHasPermission permission class for authorization.
+Api's responds with JSON data and uses rest_framework.schemas.openapi.AutoSchema to generate the API documents.
+Api's classes use the {{app_name | title}} model and schema {{app_name | title}} to work with data.
+"""
+
+
+from {{app_name}}.schemas import {{app_name | title}}Schema, {{app_name | title}}DetailSchema
+from {{app_name}}.models import {{app_name | title}}
+from drf_base_apps.core.abstract.views import AbstractViewApi
+
+from drf_base_apps.utils import _
+
+class {{app_name | title}}Api(AbstractViewApi):
+    """Define the {{app_name | title}}Api view class for handling HTTP methods related to {{app_name | title}}.
+
+    This view class extends the AbstractViewApi class, which provides a basic implementation
+    for common API actions. The {{app_name | title}}Api supports HTTP POST and GET methods, and uses the {{app_name | title}}Schema
+    serializer for input/output validation. The view requires authenticated users with appropriate
+    permissions to access the API endpoints, as specified by the IsAuthenticated and CheckHasPermission
+    permission classes.
+
+    Attributes:
+        http_method_names (list): A list of HTTP methods supported by this view.
+        serializer_class (class): The serializer class for input/output validation.
+        permission_classes (list): A list of permission classes for user authentication and authorization.
+        model (class): The model class associated with this view.
+
+        query_params (list): A list of dictionaries, each specifying a query parameter for the API.
+
+    Examples:
+        To retrieve {{app_name}} with a matching description:
+        ```
+        GET /api/v1/{{app_name}}/?{{app_name}}={{app_name}}_name
+        ```
+    """
+    http_method_names = ['get', 'post']
+    serializer_class = {{app_name | title}}Schema
+    model = {{app_name | title}}
+
+    docs = {
+        'init': _("""Represents the entire {{app_name | title}}.
+                """),
+        'get': _("""This method handles GET requests for the view. It retrieves a specific {{app_name | title}} object using the given
+            calculation_id from the query parameters and serializes the result into JSON format before returning it as
+             an HTTP response.
+
+                Returns:
+                    JsonResponse: An HTTP response containing the serialized {{app_name | title}} data retrieved.
+                """)
+    }
+
+    query_params = [
+        {
+            "name": "description",
+            "field": "description__icontains",
+            "in": "query",
+            "required": False,
+            "description": _("{{app_name}}"),
+            "schema": {"type": "string"}
+        }
+    ]
+
+class {{app_name | title}}DetailApi(AbstractViewApi):
+    """Define the detail {{app_name | title}}Api view class for handling HTTP methods related to {{app_name | title}}.
+
+    This view class extends the AbstractViewApi class, which provides a basic implementation
+    for common API actions. The {{app_name | title}}Api supports HTTP POST and GET methods, and uses the {{app_name | title}}Schema
+    serializer for input/output validation. The view requires authenticated users with appropriate
+    permissions to access the API endpoints, as specified by the IsAuthenticated and CheckHasPermission
+    permission classes.
+
+    Attributes:
+        http_method_names (list): A list of HTTP methods supported by this view.
+        serializer_class (class): The serializer class for input/output validation.
+        permission_classes (list): A list of permission classes for user authentication and authorization.
+        model (class): The model class associated with this view.
+
+        query_params (list): A list of dictionaries, each specifying a query parameter for the API.
+
+    Examples:
+        To retrieve {{app_name}} with a matching description:
+        ```
+        GET /api/v1/{{app_name}}/?{{app_name}}={{app_name}}_name
+        ```
+    """
+    http_method_names = ['get', 'put']
+    serializer_class = {{app_name | title}}DetailSchema
+    model = {{app_name | title}}
+
+    docs = {
+        'init': _("""Represents the entire {{app_name | title}}.
+                """),
+        'get': _("""This method handles GET requests for the view. It retrieves a specific {{app_name | title}} object using the given
+            calculation_id from the query parameters and serializes the result into JSON format before returning it as
+             an HTTP response.
+
+                Returns:
+                    JsonResponse: An HTTP response containing the serialized {{app_name | title}} data retrieved.
+                """)
+    }
+
+    query_params = [
+        {
+            "name": "description",
+            "field": "description__icontains",
+            "in": "query",
+            "required": False,
+            "description": _("{{app_name}}"),
+            "schema": {"type": "string"}
+        }
+    ]

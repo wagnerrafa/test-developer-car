@@ -1,0 +1,5 @@
+"""
+{{ app_name | title }} package.
+
+This package contains the Django configuration for {{ app_name }} project.
+"""

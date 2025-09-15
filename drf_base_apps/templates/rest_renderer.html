@@ -1,0 +1,21 @@
+<!-- templates/custom_error.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Erro {{ status_code }}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'base_django_static/css/rest_renderer.css' %}"/>
+</head>
+<body>
+<div class="container">
+    <h1>Erro {{ status_code }}</h1>
+    <ul>
+        {% for message in exceptions %}
+            <li><strong>Mensagem:</strong> {{ message }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% include 'footer.html' %}
+</body>
+</html>

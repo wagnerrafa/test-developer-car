@@ -1,0 +1,32 @@
+{% load i18n static %}
+{% load static %}
+
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{% static 'base_django_static/icon-app.svg' %}">
+    <title>{{ app_name }}</title>
+    <script src="{% static 'js/django_index.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'base_django_static/css/django_index.css' %}"/>
+</head>
+<body>
+    {% load i18n %}
+    {% if usr_prf %}{{ usr_prf|json_script:"usr-prf" }}{% endif %}
+    <noscript>
+        <strong>We're sorry but BASE doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+
+    <div class="error-message">
+        <h2>Ops! Algo deu errado.</h2>
+        <p>Não foi possível carregar todos os recursos da página.</p>
+        <p>Por favor, tente novamente mais tarde.</p>
+    </div>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+    {% include 'footer.html' %}
+</body>
+</html>

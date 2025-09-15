@@ -1,0 +1,27 @@
+[run]
+omit =
+    */migrations/*
+    */__init__.py
+    */snippets.py
+    */management/commands/*
+    */tasks.py
+    */signals.py
+    */exception.py
+    */validators.py
+    */constants.py
+    */base_tests_locust.py
+    */serializers.py
+    */locust.py
+    */permissions.py
+    */managers.py
+    */token.py
+    */main.py
+    */apps.py
+    */test_runner.py
+    */version.py
+    */tests.py
+    */admin.py
+    */asgi.py
+    */wsgi.py
+    */manage.py
+    */storage.py

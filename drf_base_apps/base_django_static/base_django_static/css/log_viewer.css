@@ -1,0 +1,7 @@
+#log-entries, #log-files-list {
+    width: 100%;
+}
+
+#btn-download-file-log{
+    display: none;
+}

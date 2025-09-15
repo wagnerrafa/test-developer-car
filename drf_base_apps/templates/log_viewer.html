@@ -1,0 +1,80 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Django Log Viewer" %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+        &rsaquo;
+        <a href="{% url 'custom_log_viewer:log_file_view' %}">
+            {% if custom_file_list_title %}{{ custom_file_list_title }}{% else %}
+                {% trans "Django Log Viewer" %}{% endif %}</a>
+    </div>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/changelists.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'log_viewer/css/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'log_viewer/css/log-viewer.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'base_django_static/css/log_viewer.css' %}"/>
+
+    {% if custom_style_file %}
+        <link type="text/css" href="{{ custom_style_file }}" rel="stylesheet">
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'log_viewer/js/jquery.min.js' %}"></script>
+    <script src="{% static 'log_viewer/js/jquery.dataTables.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="django__log__viewer " id="django_log_viewer_config" data-schema-url="{% url 'custom_log_viewer:log_json_view' xxxxx %}" data-schema-files-per-page="{{ files_per_page }}">
+        <div id="content-main">
+            <div class="module filtered" id="changelist">
+                <form id="changelist-form" class="changelist-form-container">
+                    <div class="results">
+                        <div class="headers">
+                            <h1 class="pull-left">{% if custom_file_list_title %}{{ custom_file_list_title }}{% else %}
+                                {% trans "Django Log Viewer" %}{% endif %}</h1>
+                            <div class="download-buttons">
+                                <a href="{% url 'custom_log_viewer:log_download_zip_view' %}"
+                                   class="btn-download pull-right">{% trans "Download all Log Files" %}</a>
+                                <a href="{% url 'custom_log_viewer:log_download_file_view' %}"
+                                   id="btn-download-file-log"
+                                   class="btn-download pull-right btn-download-this-log">{% trans "Download this Log File" %}</a>
+                            </div>
+                        </div>
+                        <table id="log-entries" class="display">
+                            <thead>
+                            <tr>
+                                <th scope="col">{% trans 'No.' %}</th>
+                                <th scope="col">{% trans 'Log entries' %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td colspan="2">{% trans 'No entries!' %}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+                <div id="changelist-filter">
+                    <h2>{% trans 'Log Files' %}</h2>
+                    <table id="log-files-list" class="display">
+                        <tbody>
+                        <tr>
+                            <td colspan="2">{% trans 'No entries!' %}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'base_django_static/js/log_viewer.js' %}"></script>
+{% endblock %}

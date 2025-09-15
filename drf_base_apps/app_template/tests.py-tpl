@@ -1,0 +1,25 @@
+# """
+# This module defines a test class for testing the {{app_name | title}} API endpoints.
+#
+# The {{app_name | title}}Test class inherits from the AbstractTest class and includes two methods for testing
+# the HTTP POST and GET methods for managing {{app_name | title}} objects. The tests use the Django test client to
+# send HTTP requests and assert the responses.
+#
+# Methods:
+# - test_api_a_post_{{app_name}}s: Sends a POST request to create a new {{app_name | title}} object and asserts a successful response status code
+# - test_api_b_get_{{app_name}}s: Sends a GET request to retrieve a list of {{app_name | title}} objects and asserts a successful response status code and the presence of at least one {{app_name | title}} object in the response data
+#
+# Attributes:
+# - None
+# """
+# from base.abstract.tests import AbstractTest
+#
+#
+# class {{app_name | title}}Test(AbstractTest):
+#     """{{app_name}} related tests"""
+#
+#     parameters = {
+#         'description': 'Descricao de teste'
+#     }
+#
+#     path = '{{app_name}}'

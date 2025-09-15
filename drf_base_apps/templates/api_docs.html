@@ -1,0 +1,48 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ app_name }} Api Documentation</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/svg+xml" href="{% static 'base_django_static/icon-app.svg' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'base_django_static/css/swagger-ui.css' %}"/>
+</head>
+<body>
+<div class="div-info">
+    {% if request.user.is_authenticated %}
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    {% else %}
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="digite o username..." autocomplete="off"/>
+            <input type="password" name="password" placeholder="digite a senha..." autocomplete="off"/>
+            <button type="submit">Login</button>
+        </form>
+    {% endif %}
+</div>
+<div class="div-info">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li
+                        {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+
+<div id="swagger-ui"></div>
+<div id="config" data-schema-url="{{ schema_url }}" data-csrf-token="{{ csrf_token }}"></div>
+
+<script src="{% static 'base_django_static/js/swagger-ui-bundle.js' %}"></script>
+<script src="{% static 'base_django_static/js/swagger_bundle.js' %}"></script>
+
+{% include 'footer.html' %}
+</body>
+</html>

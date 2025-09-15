@@ -1,0 +1,24 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'base_django_static/css/footer.css' %}">
+
+<div class="z-2 max-w-100vw sticky bottom-0">
+    <footer class="z-100">
+        <div class="flex justify-center p-2 bg-[#F5F5F4] border-t-1 border-t-solid border--content/12">
+            <a href="{% url 'sobre_base_django' %}"
+               class="px-2 hover:text--primary hover:font-bold">
+                Sobre a BaseDjango
+            </a>
+            <a href="{% url 'privacidade' %}"
+               class="px-2 hover:text--primary hover:font-bold border-l-1 border-l-solid border--content/12">
+                Privacidade
+            </a>
+        </div>
+        <div class="text-2.5 md:text-3 flex flex-nowrap items-center justify-between bg-black h-9 px-4 md:px-10 text-white overflow-hidden">
+            <div class="inline sm:block">
+                © 2024 Para mais informações contate {{ app_name }}
+            </div>
+            <span class="ml-4 whitespace-pre">Versão: {{ current_version }}</span>
+        </div>
+    </footer>
+</div>

@@ -1,0 +1,201 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade - {{ app_name }}</title>
+    <link rel="stylesheet" href="{% static 'base_django_static/css/django_index.css' %}">
+    <style>
+        .privacidade-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            overflow: visible;
+        }
+        .privacidade-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 1rem;
+            overflow: visible;
+        }
+        .privacidade-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: visible;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .section {
+            margin-bottom: 2rem;
+            overflow: visible;
+        }
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        body {
+            overflow-x: auto;
+            overflow-y: auto;
+            min-height: 100vh;
+          height: auto;
+        }
+
+        .section {
+            border: 1px solid green;
+            padding: 1rem;
+        }
+        .text-gray-700 {
+            color: #374151;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .text-gray-600 {
+            color: #4b5563;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .text-gray-500 {
+            color: #6b7280;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .text-gray-800 {
+            color: #1f2937;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="privacidade-container">
+        <a href="{% url 'home' %}" class="back-link">← Voltar ao Início</a>
+
+        <div class="privacidade-header">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">Política de Privacidade</h1>
+            <p class="text-xl text-gray-600">Como protegemos e utilizamos suas informações</p>
+            <p class="text-sm text-gray-500">Última atualização: {{ current_version }}</p>
+        </div>
+
+        <div class="privacidade-content">
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">1. Informações Coletadas</h2>
+                <p class="mb-4 text-gray-700" style="display: block; visibility: visible; clip: auto; overflow: visible;">
+                    Coletamos apenas as informações necessárias para fornecer nossos serviços de forma eficiente e segura:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li><strong>Informações de Conta:</strong> Nome, email e dados de login</li>
+                    <li><strong>Dados de Uso:</strong> Como você utiliza nossa plataforma</li>
+                    <li><strong>Informações Técnicas:</strong> Tipo de dispositivo e navegador</li>
+                    <li><strong>Logs de Sistema:</strong> Para monitoramento e segurança</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">2. Como Utilizamos Suas Informações</h2>
+                <p class="mb-4 text-gray-700">
+                    Utilizamos suas informações exclusivamente para:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li>Fornecer e melhorar nossos serviços</li>
+                    <li>Personalizar sua experiência na plataforma</li>
+                    <li>Comunicar atualizações importantes</li>
+                    <li>Garantir a segurança da plataforma</li>
+                    <li>Cumprir obrigações legais</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">3. Proteção de Dados</h2>
+                <p class="mb-4 text-gray-700">
+                    Implementamos medidas rigorosas de segurança para proteger suas informações:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li><strong>Criptografia:</strong> Todos os dados são criptografados em trânsito e em repouso</li>
+                    <li><strong>Controle de Acesso:</strong> Acesso restrito apenas a pessoal autorizado</li>
+                    <li><strong>Monitoramento:</strong> Sistema de detecção de atividades suspeitas</li>
+                    <li><strong>Backup Seguro:</strong> Redundância de dados com proteção adicional</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">4. Compartilhamento de Informações</h2>
+                <p class="mb-4 text-gray-700">
+                    <strong>Não vendemos, alugamos ou compartilhamos suas informações pessoais</strong> com terceiros, exceto:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li>Quando exigido por lei ou ordem judicial</li>
+                    <li>Para proteger nossos direitos e segurança</li>
+                    <li>Com prestadores de serviços essenciais (sempre com proteções adequadas)</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">5. Seus Direitos</h2>
+                <p class="mb-4 text-gray-700">
+                    Você tem o direito de:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li>Acessar suas informações pessoais</li>
+                    <li>Corrigir dados incorretos ou incompletos</li>
+                    <li>Solicitar a exclusão de suas informações</li>
+                    <li>Revogar consentimento a qualquer momento</li>
+                    <li>Exportar seus dados em formato legível</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">6. Cookies e Tecnologias Similares</h2>
+                <p class="mb-4 text-gray-700">
+                    Utilizamos cookies e tecnologias similares para:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li>Manter você logado na plataforma</li>
+                    <li>Lembrar suas preferências</li>
+                    <li>Analisar o uso da plataforma</li>
+                    <li>Melhorar a performance e funcionalidade</li>
+                </ul>
+                <p class="text-gray-700">
+                    Você pode controlar o uso de cookies através das configurações do seu navegador.
+                </p>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">7. Alterações na Política</h2>
+                <p class="mb-4 text-gray-700">
+                    Podemos atualizar esta política periodicamente. Notificaremos sobre mudanças
+                    significativas através de:
+                </p>
+                <ul class="list-disc list-inside mb-4 text-gray-700 space-y-2">
+                    <li>Email para usuários registrados</li>
+                    <li>Notificação na plataforma</li>
+                    <li>Atualização da data de "última atualização"</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">8. Contato</h2>
+                <p class="text-gray-700">
+                    Se você tiver dúvidas sobre esta política de privacidade ou sobre como
+                    tratamos suas informações, entre em contato conosco através de
+                    <strong>{{ app_name }}</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'base_django_static/js/django_index.js' %}"></script>
+</body>
+</html>

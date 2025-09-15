@@ -1,0 +1,5 @@
+APP_NAME = "{{app_name|upper}}"
+from drf_base_apps.core.abstract.constants import URIDefault
+
+class {{app_name|title}}URIs:
+    USER = f'{URIDefault.USER}/{{app_name}}/'
