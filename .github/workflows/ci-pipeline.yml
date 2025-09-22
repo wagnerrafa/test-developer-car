@@ -45,20 +45,26 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          pwd
+          ls -la
+          poetry install --no-interaction --no-ansi
 
       - name: Run Black formatting check
-        run: poetry run black --check .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run black --check .
 
       - name: Run Ruff linting
-        run: poetry run ruff check .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run ruff check .
 
       - name: Run import sorting check
-        run: poetry run ruff check --select I .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run ruff check --select I .
 
   # Job 2: Security Scans (depende do code-quality)
   security:
@@ -90,16 +96,19 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Run Bandit security scan
-        run: poetry run make bandit-sarif
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run make bandit-sarif
 
       - name: Run Semgrep security scan
-        run: poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
 
       - name: Upload Bandit results to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -168,11 +177,13 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Create test environment file
         run: |
+          cd ${{ github.workspace }}
           cat > .env << EOF
           APP_NAME=site_example
           DEBUG=True
@@ -186,8 +197,9 @@ jobs:
           EOF
 
       - name: Run migrations
-        run: poetry run python manage.py migrate --settings=config.settings
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run python manage.py migrate --settings=config.settings
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -201,8 +213,9 @@ jobs:
           NAMU_API_USE_MOCK: True
 
       - name: Create groups
-        run: poetry run python manage.py create_groups --settings=config.settings
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run python manage.py create_groups --settings=config.settings
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -216,8 +229,9 @@ jobs:
           NAMU_API_USE_MOCK: True
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -267,12 +281,14 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Run dependency review
-        run: poetry run pipdeptree --warn silence
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run pipdeptree --warn silence
 
   # Job 5: Integration Tests (depende do dependency-review)
   integration:
@@ -304,11 +320,13 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Create test environment file
         run: |
+          cd ${{ github.workspace }}
           cat > .env << EOF
           APP_NAME=site_example
           DEBUG=True
@@ -322,8 +340,9 @@ jobs:
           EOF
 
       - name: Run integration tests
-        run: poetry run python manage.py test --keepdb --tag=integration
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run python manage.py test --keepdb --tag=integration
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0

@@ -42,8 +42,9 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Create .env environment file
         run: |
@@ -63,8 +64,9 @@ jobs:
           EOF
 
       - name: Check production Django configuration
-        run: poetry run python manage.py check --deploy
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run python manage.py check --deploy
 
       - name: Check for production settings issues
         run: |
@@ -80,8 +82,9 @@ jobs:
           "
 
       - name: Check static files collection
-        run: poetry run python manage.py collectstatic --dry-run --noinput
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run python manage.py collectstatic --dry-run --noinput
 
       - name: Check for hardcoded secrets
         run: |
@@ -200,11 +203,13 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Run Bandit security scan
         run: |
+          cd ${{ github.workspace }}
           echo "🔍 Executando Bandit security scan..."
           poetry run bandit --version
           echo "📁 Verificando diretórios..."
@@ -217,19 +222,19 @@ jobs:
           poetry run make bandit-sarif
           echo "📁 Verificando se o arquivo foi criado..."
           ls -la *.sarif || echo "Nenhum arquivo .sarif encontrado"
-        working-directory: .
 
       - name: Run Semgrep security scan
         run: |
+          cd ${{ github.workspace }}
           echo "🔍 Executando Semgrep security scan..."
           poetry run semgrep --version
           poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
           echo "📁 Verificando se o arquivo foi criado..."
           ls -la *.sarif || echo "Nenhum arquivo .sarif encontrado"
-        working-directory: .
 
       - name: Check if SARIF files exist
         run: |
+          cd ${{ github.workspace }}
           echo "🔍 Verificando se os arquivos SARIF foram criados..."
           if [ -f "bandit-report.sarif" ]; then
             echo "✅ bandit-report.sarif existe"
@@ -248,7 +253,6 @@ jobs:
             echo "Criando arquivo SARIF válido..."
             echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"Semgrep","version":"1.0.0","informationUri":"https://semgrep.dev/"}},"results":[]}]}' > semgrep-report.sarif
           fi
-        working-directory: .
 
       - name: Check for SQL injection vulnerabilities
         run: |

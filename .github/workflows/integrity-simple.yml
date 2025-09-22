@@ -47,41 +47,51 @@ jobs:
           poetry config virtualenvs.in-project true
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry install --no-interaction --no-ansi
 
       - name: Poetry Configuration Check
-        run: poetry check
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry check
 
       - name: Check Django configuration (basic)
-        run: poetry run python manage.py check --settings=config.settings
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run python manage.py check --settings=config.settings
 
       - name: Check for unused imports
-        run: poetry run ruff check --select F401 .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run ruff check --select F401 .
 
       - name: Check for unused variables
-        run: poetry run ruff check --select F841 .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run ruff check --select F841 .
 
       - name: Check for code simplifications
-        run: poetry run ruff check --select SIM .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run ruff check --select SIM .
 
       - name: Check for code upgrades
-        run: poetry run ruff check --select UP .
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run ruff check --select UP .
 
       - name: Check dependency tree
-        run: poetry show --tree
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry show --tree
 
       - name: Validate lock file
-        run: poetry lock
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry lock
 
       - name: Check for circular dependencies
-        run: poetry run pipdeptree --warn silence
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          poetry run pipdeptree --warn silence
