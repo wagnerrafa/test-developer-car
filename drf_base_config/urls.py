@@ -44,7 +44,14 @@ from drf_base_config.settings import (
     PUBLIC_SWAGGER,
     STATIC_URL,
 )
-from drf_base_config.views import CustomTemplateView, frontend_index, home, privacidade, sobre_base_django
+from drf_base_config.views import (
+    CustomTemplateView,
+    frontend_index,
+    home,
+    privacidade,
+    sobre_base_django,
+    websocket_page,
+)
 
 permission = permissions.AllowAny if ENV_DEV else permissions.IsAdminUser
 
@@ -116,7 +123,7 @@ urls_docs = [
                 "app_name": APP_NAME.title(),
             },
         ),
-        name=APP_NAME,
+        name="schema-api-swagger",
     ),
     path(
         f"{BASE_API_URL}docs/swagger/cache/",
@@ -154,5 +161,6 @@ if ENABLE_LOGGING_FILE:
 urlpatterns.append(path(f"{BASE_URL}sobre/", sobre_base_django, name="sobre_base_django"))
 urlpatterns.append(path(f"{BASE_URL}privacidade/", privacidade, name="privacidade"))
 urlpatterns.append(path(f"{BASE_URL}home/", home, name="home"))
+urlpatterns.append(path(f"{BASE_URL}websocket/", websocket_page, name="websocket-page"))
 urlpatterns.append(path(f"{APP_NAME}/", home, name="default-home"))
 urlpatterns.append(path(f"{BASE_URL}admin/", admin.site.urls, name="admin"))

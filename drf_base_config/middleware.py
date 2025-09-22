@@ -25,6 +25,7 @@ Usage:
 import json
 import logging
 import time
+import uuid
 
 from django.conf import settings
 from django.conf.global_settings import DEFAULT_CHARSET
@@ -222,4 +223,32 @@ class ForceAPILoggingMiddleware:
             # Apenas registra o erro no console para debug
             logging.debug(f"Erro ao salvar log da API: {e}")
 
+        return response
+
+
+class AnonymousIdMiddleware(MiddlewareMixin):
+    """
+    Middleware que gera um UUID persistente para usuários anônimos.
+
+    Isso garante que todos os usuários tenham uma identificação única
+    mesmo sem estar autenticados.
+    """
+
+    def process_request(self, request):
+        """Gera ou recupera o ID anônimo do usuário."""
+        # Verificar se já existe o cookie anon_id
+        if "anon_id" not in request.COOKIES:
+            # Gerar um novo UUID para o usuário anônimo
+            request.anon_id = str(uuid.uuid4())
+        else:
+            # Usar o UUID existente
+            request.anon_id = request.COOKIES["anon_id"]
+
+    def process_response(self, request, response):
+        """Define o cookie anon_id na resposta se necessário."""
+        # Se foi gerado um novo anon_id, definir o cookie
+        if hasattr(request, "anon_id") and "anon_id" not in request.COOKIES:
+            response.set_cookie(
+                "anon_id", request.anon_id, httponly=True, samesite="Lax", max_age=365 * 24 * 60 * 60  # 1 ano
+            )
         return response

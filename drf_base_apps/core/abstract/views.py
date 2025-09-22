@@ -507,7 +507,7 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset.values_list("id", flat=True)[self.offset: self.offset + self.limit])
+        return list(queryset.values_list("id", flat=True)[self.offset : self.offset + self.limit])
 
 
 class SimpleFilterBackend(BaseFilterBackend, ABC):

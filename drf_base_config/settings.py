@@ -156,6 +156,7 @@ INSTALLED_APPS = [
 
 PROJECT_INSTALLED_APPS = [
     # Core
+    "apps.web_sockets",
 ]
 
 AUTH_USER_MODEL = "drf_base_user.User"
@@ -181,6 +182,8 @@ MIDDLEWARE = [
     "drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware",
     # Save the first occurrence of user login on the day
     "drf_base_apps.core.drf_base_user.middleware.LoginMiddleware",
+    # Anonymous ID middleware - deve vir após SessionMiddleware
+    "drf_base_config.middleware.AnonymousIdMiddleware",
     # FORTIFY: Django-CSP (HTML5: Misconfigured Content Security Policy)
     "csp.middleware.CSPMiddleware",
 ]
@@ -585,7 +588,6 @@ TIME_ZONE = "America/Sao_Paulo"
 
 USE_I18N = True
 
-
 USE_TZ = True
 
 LOCALE_PATHS = [
@@ -792,3 +794,28 @@ else:
 TEST_RUNNER = "drf_base_apps.test_runner.CustomTestRunner"
 with contextlib.suppress(NameError):
     DATABASES["default"]["TEST"] = db_test
+
+# Definição de configurações sockets
+channel_redis_url = config("REDIS_URL", default="redis://localhost:6379/6")
+channel_redis_cache = config("REDIS_URL", default="redis://localhost:6379/7")
+celery_url = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/8")
+
+BASE_SOCKETS = f"{APP_NAME}/ws/V1/"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "apps.web_sockets.channel_layer.ExtendedRedisChannelLayer",
+        "CONFIG": {
+            "hosts": [channel_redis_url],
+            "symmetric_encryption_keys": [SECRET_KEY],
+            "capacity": 500,  # default 100
+        },
+    },
+    "general": {
+        "BACKEND": "apps.web_sockets.channel_layer.ExtendedRedisChannelLayer",
+        "CONFIG": {
+            "hosts": [channel_redis_url],
+            "symmetric_encryption_keys": [SECRET_KEY],
+            "capacity": 500,  # default 100
+        },
+    },
+}
