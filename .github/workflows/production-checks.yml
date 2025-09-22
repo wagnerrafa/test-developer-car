@@ -9,7 +9,6 @@ on:
 permissions:
   contents: read
   actions: write
-  security-events: write
 
 env:
   PYTHON_VERSION: '3.12'
@@ -337,17 +336,17 @@ EOF
             echo "✓ No obvious XSS patterns found"
           fi
 
-      - name: Upload Bandit results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: bandit-report.sarif
+      # - name: Upload Bandit results to GitHub Code Scanning
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: bandit-report.sarif
 
-      - name: Upload Semgrep results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: semgrep-report.sarif
+      # - name: Upload Semgrep results to GitHub Code Scanning
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: semgrep-report.sarif
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4

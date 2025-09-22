@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
   actions: write
-  security-events: write
 
 env:
   PYTHON_VERSION: '3.12'
@@ -94,17 +93,17 @@ jobs:
       - name: Run Semgrep security scan
         run: poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
 
-      - name: Upload Bandit results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: bandit-report.sarif
+      # - name: Upload Bandit results to GitHub Code Scanning
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: bandit-report.sarif
 
-      - name: Upload Semgrep results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: semgrep-report.sarif
+      # - name: Upload Semgrep results to GitHub Code Scanning
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: semgrep-report.sarif
 
   # Job 3: Unit Tests (depende do security)
   unit-tests:
