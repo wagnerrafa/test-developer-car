@@ -78,6 +78,8 @@ python manage.py populate_cars [opções]
 
 #### Exemplos de Uso
 
+##### Via Management Command
+
 ```bash
 # Criar 100 carros (padrão)
 python manage.py populate_cars
@@ -90,6 +92,25 @@ python manage.py populate_cars --count 1000 --clear
 
 # Criar 2000 carros com lotes de 500
 python manage.py populate_cars --count 2000 --batch-size 500
+```
+
+##### Via Makefile (Recomendado)
+
+```bash
+# Criar 100 carros (padrão)
+make populate-cars
+
+# Criar quantidade específica
+make populate-cars COUNT=500
+
+# Limpar dados existentes e criar 500 carros
+make populate-cars-clear COUNT=500
+
+# Criar grande quantidade (1000+ carros)
+make populate-cars-large
+
+# Criar quantidade massiva (5000+ carros)
+make populate-cars-huge
 ```
 
 #### Dados Gerados
