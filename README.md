@@ -58,6 +58,68 @@ Para começar a desenvolver a sua aplicação, você pode seguir os seguintes pa
 
 Comece criando um novo app com o comando `make startapp name=app_name`
 
+## Comandos de Management
+
+### População de Dados Fictícios
+
+O projeto inclui um comando de management para popular o banco de dados com dados fictícios de veículos, otimizado para performance usando `bulk_create`.
+
+#### Comando: `populate_cars`
+
+```bash
+python manage.py populate_cars [opções]
+```
+
+#### Opções Disponíveis
+
+- `--count N`: Número de carros a serem criados (padrão: 100)
+- `--clear`: Limpa todos os dados existentes antes de popular
+- `--batch-size N`: Tamanho do lote para operações bulk_create (padrão: 1000)
+
+#### Exemplos de Uso
+
+```bash
+# Criar 100 carros (padrão)
+python manage.py populate_cars
+
+# Criar 500 carros
+python manage.py populate_cars --count 500
+
+# Limpar dados existentes e criar 1000 carros
+python manage.py populate_cars --count 1000 --clear
+
+# Criar 2000 carros com lotes de 500
+python manage.py populate_cars --count 2000 --batch-size 500
+```
+
+#### Dados Gerados
+
+O comando cria dados realistas para:
+
+- **Marcas**: 30 marcas populares (Toyota, Honda, Ford, etc.)
+- **Cores**: 18 cores comuns de veículos
+- **Motores**: 50 especificações de motor (cilindrada e potência)
+- **Modelos**: 100 tipos de carroceria (Sedan, SUV, Hatchback, etc.)
+- **Nomes de Carros**: 3-5 nomes por marca com anos (2015-2024)
+- **Carros**: Dados completos com todas as especificações
+
+#### Características de Performance
+
+- **Bulk Create**: Usa `bulk_create()` para inserções em lote
+- **Transações**: Todas as operações são executadas em uma transação
+- **Lotes Configuráveis**: Permite ajustar o tamanho dos lotes
+- **Dados Relacionais**: Mantém integridade referencial entre modelos
+- **Progresso**: Exibe progresso durante a criação dos dados
+
+#### Dados Realistas
+
+- Anos de fabricação e modelo (2015-2024)
+- Quilometragem (0-200.000 km)
+- Preços realistas (R$ 10.000 - R$ 999.999)
+- Tipos de combustível e transmissão
+- Número de portas (2, 4 ou 5)
+- Descrições em português brasileiro
+
 # Funcionalidade WebSocket
 
 O projeto inclui suporte completo a WebSocket para comunicação em tempo real entre cliente e servidor.
