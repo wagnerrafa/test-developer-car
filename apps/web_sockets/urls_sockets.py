@@ -9,7 +9,7 @@ from channels.routing import URLRouter
 from django.urls import path
 
 from apps.web_sockets.views_sockets import GeneralSocket
-from drf_base_config.settings import BASE_SOCKETS
+from config.settings import BASE_SOCKETS
 
 websockets = URLRouter(
     [

@@ -1,30 +1,16 @@
 """
-ASGI configuration for WebSocket support.
+ASGI config for config project.
 
-This module configures the ASGI application to handle both HTTP and WebSocket
-connections, including authentication and session management.
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/3.2/howto/deployment/asgi/
 """
 
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "drf_base_config.settings")
-import django
-
-django.setup()
-
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter
-from channels.security.websocket import AllowedHostsOriginValidator
-from channels.sessions import SessionMiddlewareStack
 from django.core.asgi import get_asgi_application
 
-from apps.web_sockets.urls_sockets import websockets
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "drf_base_config.settings")
 
-django_asgi_app = get_asgi_application()
-
-protocol_routers = {
-    # WebSocket urls handler
-    "websocket": AllowedHostsOriginValidator(SessionMiddlewareStack(AuthMiddlewareStack(websockets))),
-    "http": django_asgi_app,
-}
-application = ProtocolTypeRouter(protocol_routers)
+application = get_asgi_application()

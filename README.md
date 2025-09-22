@@ -18,8 +18,9 @@
 2. Instale as dependências: `poetry install`
 3. Crie as migrações: `python manage.py makemigrations`
 4. Execute as migrações: `python manage.py migrate`
-5. Crie um super usuário: `python manage.py createsuperuser`
-6. Inicie o servidor: `python manage.py runserver`
+5. Colete os arquivos estáticos: `python manage.py collectstatic`
+6. Crie um super usuário: `python manage.py createsuperuser`
+7. Inicie o servidor: `python manage.py runserver`
 
 ## Executando o Servidor
 
@@ -27,14 +28,14 @@
 Para desenvolvimento local com suporte completo a WebSocket:
 
 ```bash
-daphne drf_base_config.asgi:application --port 8000 -v2
+daphne config.asgi:application --port 8000 -v2
 ```
 
 ### Produção
 Para ambiente de produção com múltiplos workers:
 
 ```bash
-gunicorn drf_base_config.asgi:application -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 4
+gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 4
 ```
 
 **Nota:** O servidor padrão do Django (`python manage.py runserver`) não suporta WebSocket. Use os comandos acima para funcionalidade completa.
@@ -75,7 +76,7 @@ O projeto inclui suporte completo a WebSocket para comunicação em tempo real e
 
 1. Inicie o servidor com suporte a WebSocket:
    ```bash
-   daphne drf_base_config.asgi:application --port 8000 -v2
+   daphne config.asgi:application --port 8000 -v2
    ```
 
 2. Acesse a página inicial do servidor: `http://127.0.0.1:8000/`
@@ -152,7 +153,7 @@ socket.send(JSON.stringify({
 O `AnonymousIdMiddleware` gera automaticamente UUIDs únicos para usuários anônimos:
 
 ```python
-# drf_base_config/middleware.py
+# config/middleware.py
 class AnonymousIdMiddleware(MiddlewareMixin):
     """Middleware que gera um UUID persistente para usuários anônimos."""
     
@@ -350,14 +351,14 @@ fornecido pelo Django que ajuda a automatizar o processo de execução de testes
     from decouple import config
     from split_settings.tools import include as extend_settings
     
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "drf_base_config.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     
     library_path = sysconfig.get_paths()['purelib']
-    settings_path = path.join(library_path, 'drf_base_config', 'settings.py')
+    settings_path = path.join(library_path, 'config', 'settings.py')
     
     extend_settings(settings_path)
     
-    from drf_base_config.settings import *
+    from config.settings import *
     
     INSTALLED_APPS += [
     'my_app',
@@ -653,11 +654,11 @@ meu_projeto/
 
     from django.urls import path, include
     from django.conf.urls.static import static
-    from drf_base_config.settings import BASE_API_URL
+    from config.settings import BASE_API_URL
     
-    from drf_base_config import urls as base_urls
+    from config import urls as base_urls
     
-    from drf_base_config.settings import MEDIA_URL, MEDIA_ROOT
+    from config.settings import MEDIA_URL, MEDIA_ROOT
     
     
     urlpatterns = [

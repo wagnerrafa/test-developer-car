@@ -127,7 +127,7 @@ integrity-local:  ## Testa integridade localmente com variáveis de ambiente (si
 	SECRET_KEY='django-insecure-test-key-for-ci-only' \
 	DEBUG='True' \
 	ALLOWED_HOSTS='localhost,127.0.0.1' \
-	DJANGO_SETTINGS_MODULE='drf_base_config.settings' \
+	DJANGO_SETTINGS_MODULE='config.settings' \
 	ENVIRONMENT='dev' \
 	ENV='dev' \
 	LIST_ALLOWED_HOSTS='localhost,127.0.0.1' \
@@ -155,7 +155,7 @@ integrity-local:  ## Testa integridade localmente com variáveis de ambiente (si
 	USER_DEV='dev_user' \
 	USER_ADMIN_DEV='dev_admin' \
 	FERNET_KEY='ou5SAHd8fIj-gSLGyxPR5q8XraVD-_xlGGOtxpflOUQ=' \
-	poetry run python manage.py check --settings=drf_base_config.settings
+	poetry run python manage.py check --settings=config.settings
 	@echo "✅ Verificação básica do Django concluída!"
 	@echo "Executando verificações de código..."
 	poetry run ruff check --select F401 . --config=pyproject.toml || true

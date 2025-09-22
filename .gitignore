@@ -7,10 +7,8 @@ staticfiles
 **/package-lock.json
 project_ids.json
 .idea
-.env
-.env.dev
-.env.hml
-.env.prod
+.env*
+!.env.example
 var
 media
 remove_migrations.py
@@ -29,3 +27,7 @@ static_prod
 venv_celery
 uvicorn-config-dev.yaml
 ignore_dirs/
+bandit-report*
+semgrep-report*
+coverage.xml
+.coverage
