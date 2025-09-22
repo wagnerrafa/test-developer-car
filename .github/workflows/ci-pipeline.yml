@@ -69,6 +69,12 @@ jobs:
             echo "❌ pyproject.toml still not found"
             echo "Trying to find it in subdirectories..."
             find . -name "pyproject.toml" -type f
+            echo "Checking if we're in the right repository..."
+            echo "Repository name: ${{ github.repository }}"
+            echo "Repository path: ${{ github.workspace }}"
+            echo "Current branch: ${{ github.ref_name }}"
+            echo "Trying to find pyproject.toml in parent directories..."
+            find /home/runner/work -name "pyproject.toml" -type f 2>/dev/null || echo "No pyproject.toml found in /home/runner/work"
             exit 1
           fi
 
