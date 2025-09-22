@@ -65,3 +65,16 @@ def home(request):
     return render(
         request, template_name="home.html", context={"app_name": APP_NAME, "current_version": CURRENT_VERSION}
     )
+
+
+def websocket_page(request):
+    """Renderiza a página de WebSocket."""
+    return render(
+        request,
+        template_name="websocket.html",
+        context={
+            "app_name": APP_NAME,
+            "current_version": CURRENT_VERSION,
+            "websocket_url": f"ws://{request.get_host()}/{APP_NAME}/ws/V1/general/",
+        },
+    )

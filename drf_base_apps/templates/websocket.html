@@ -1,0 +1,532 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} - WebSocket</title>
+  <link rel="stylesheet" href="{% static 'base_django_static/css/django_index.css' %}">
+  <style>
+    .websocket-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .hero-section {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding: 3rem 0;
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-subtitle {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .hero-version {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      display: inline-block;
+      font-size: 0.9rem;
+    }
+
+    .websocket-section {
+      background: white;
+      padding: 3rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .websocket-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #1f2937;
+    }
+
+    .connection-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .connection-controls {
+      background: #f8fafc;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .connection-status {
+      background: #f8fafc;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .status-dot.connected {
+      background: #10b981;
+    }
+
+    .status-dot.disconnected {
+      background: #ef4444;
+    }
+
+    .status-dot.connecting {
+      background: #f59e0b;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-text {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .connection-info {
+      margin-bottom: 1rem;
+    }
+
+    .connection-info label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .connection-info input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .messages-panel {
+      background: #f8fafc;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      margin-bottom: 2rem;
+    }
+
+    .messages-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+
+    .messages-container {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 1rem;
+      background: white;
+      margin-bottom: 1rem;
+    }
+
+    .message {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .message.sent {
+      background: #dbeafe;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .message.received {
+      background: #dcfce7;
+      border-left: 4px solid #10b981;
+    }
+
+    .message.system {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+    }
+
+    .message-input {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .message-input input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .message-input button {
+      padding: 0.75rem 1.5rem;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .message-input button:hover {
+      background: #059669;
+    }
+
+    .navigation-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background: #2563eb;
+    }
+
+    .nav-link.secondary {
+      background: #6b7280;
+    }
+
+    .nav-link.secondary:hover {
+      background: #4b5563;
+    }
+
+    body {
+      height: auto;
+    }
+
+    @media (max-width: 768px) {
+      .connection-panel {
+        grid-template-columns: 1fr;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+<div class="websocket-container">
+  <!-- Navegação -->
+  <div class="navigation-links">
+    <a href="{% url 'home' %}" class="nav-link">← Voltar ao Início</a>
+    <a href="{% url 'sobre_base_django' %}" class="nav-link secondary">Sobre</a>
+  </div>
+
+  <!-- Seção Hero -->
+  <div class="hero-section">
+    <h1 class="hero-title">WebSocket</h1>
+    <p class="hero-subtitle">Comunicação em tempo real com o servidor</p>
+    <div class="hero-version">Versão {{ current_version }}</div>
+  </div>
+
+  <!-- Seção de Conexão -->
+  <div class="websocket-section">
+    <h2 class="websocket-title">Conexão WebSocket</h2>
+    
+    <div class="connection-panel">
+      <div class="connection-controls">
+        <h3>Controles de Conexão</h3>
+        <div class="connection-info">
+          <label for="websocket-url">URL do WebSocket:</label>
+          <input type="text" id="websocket-url" value="{{ websocket_url }}" readonly>
+        </div>
+        <div class="button-group">
+          <button id="connect-btn" class="btn btn-primary">Conectar</button>
+          <button id="disconnect-btn" class="btn btn-danger" disabled>Desconectar</button>
+        </div>
+      </div>
+      
+      <div class="connection-status">
+        <h3>Status da Conexão</h3>
+        <div class="status-indicator">
+          <div id="status-dot" class="status-dot disconnected"></div>
+          <span id="status-text" class="status-text">Desconectado</span>
+        </div>
+        <div id="connection-details">
+          <p><strong>URL:</strong> <span id="current-url">{{ websocket_url }}</span></p>
+          <p><strong>Protocolo:</strong> <span id="protocol">-</span></p>
+          <p><strong>Última conexão:</strong> <span id="last-connection">-</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="messages-panel">
+      <h3 class="messages-title">Mensagens</h3>
+      <div id="messages-container" class="messages-container">
+        <div class="message system">Aguardando conexão...</div>
+      </div>
+      <div class="message-input">
+        <input type="text" id="message-input" placeholder="Digite sua mensagem..." disabled>
+        <button id="send-btn" disabled>Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  class WebSocketClient {
+    constructor() {
+      this.socket = null;
+      this.isConnected = false;
+      this.reconnectAttempts = 0;
+      this.maxReconnectAttempts = 5;
+      this.reconnectInterval = 3000;
+      
+      this.initializeElements();
+      this.attachEventListeners();
+    }
+
+    initializeElements() {
+      this.connectBtn = document.getElementById('connect-btn');
+      this.disconnectBtn = document.getElementById('disconnect-btn');
+      this.statusDot = document.getElementById('status-dot');
+      this.statusText = document.getElementById('status-text');
+      this.messagesContainer = document.getElementById('messages-container');
+      this.messageInput = document.getElementById('message-input');
+      this.sendBtn = document.getElementById('send-btn');
+      this.currentUrlSpan = document.getElementById('current-url');
+      this.protocolSpan = document.getElementById('protocol');
+      this.lastConnectionSpan = document.getElementById('last-connection');
+    }
+
+    attachEventListeners() {
+      this.connectBtn.addEventListener('click', () => this.connect());
+      this.disconnectBtn.addEventListener('click', () => this.disconnect());
+      this.sendBtn.addEventListener('click', () => this.sendMessage());
+      this.messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          this.sendMessage();
+        }
+      });
+    }
+
+    connect() {
+      const url = document.getElementById('websocket-url').value;
+      
+      if (!url) {
+        this.addMessage('Erro: URL do WebSocket não fornecida', 'system');
+        return;
+      }
+
+      this.updateStatus('connecting', 'Conectando...');
+      this.connectBtn.disabled = true;
+
+      try {
+        this.socket = new WebSocket(url, 'V1');
+        
+        this.socket.onopen = (event) => {
+          this.isConnected = true;
+          this.reconnectAttempts = 0;
+          this.updateStatus('connected', 'Conectado');
+          this.updateConnectionDetails();
+          this.addMessage('Conectado com sucesso!', 'system');
+          this.enableMessageInput();
+        };
+
+        this.socket.onmessage = (event) => {
+          this.addMessage(`Recebido: ${event.data}`, 'received');
+        };
+
+        this.socket.onclose = (event) => {
+          this.isConnected = false;
+          this.updateStatus('disconnected', 'Desconectado');
+          this.disableMessageInput();
+          
+          if (event.code !== 1000) { // Não foi fechado intencionalmente
+            this.addMessage(`Conexão fechada: ${event.code} - ${event.reason}`, 'system');
+            this.attemptReconnect();
+          } else {
+            this.addMessage('Conexão fechada pelo usuário', 'system');
+          }
+        };
+
+        this.socket.onerror = (error) => {
+          this.addMessage('Erro na conexão WebSocket', 'system');
+          console.error('WebSocket error:', error);
+        };
+
+      } catch (error) {
+        this.addMessage(`Erro ao conectar: ${error.message}`, 'system');
+        this.updateStatus('disconnected', 'Erro na conexão');
+        this.connectBtn.disabled = false;
+      }
+    }
+
+    disconnect() {
+      if (this.socket) {
+        this.socket.close(1000, 'Desconexão pelo usuário');
+        this.socket = null;
+      }
+      this.isConnected = false;
+      this.updateStatus('disconnected', 'Desconectado');
+      this.disableMessageInput();
+      this.connectBtn.disabled = false;
+    }
+
+    sendMessage() {
+      const message = this.messageInput.value.trim();
+      if (!message || !this.isConnected) return;
+
+      try {
+        this.socket.send(message);
+        this.addMessage(`Enviado: ${message}`, 'sent');
+        this.messageInput.value = '';
+      } catch (error) {
+        this.addMessage(`Erro ao enviar mensagem: ${error.message}`, 'system');
+      }
+    }
+
+    updateStatus(status, text) {
+      this.statusDot.className = `status-dot ${status}`;
+      this.statusText.textContent = text;
+      
+      this.disconnectBtn.disabled = status !== 'connected';
+    }
+
+    updateConnectionDetails() {
+      if (this.socket) {
+        this.currentUrlSpan.textContent = this.socket.url;
+        this.protocolSpan.textContent = this.socket.protocol || 'V1';
+        this.lastConnectionSpan.textContent = new Date().toLocaleString();
+      }
+    }
+
+    enableMessageInput() {
+      this.messageInput.disabled = false;
+      this.sendBtn.disabled = false;
+      this.messageInput.focus();
+    }
+
+    disableMessageInput() {
+      this.messageInput.disabled = true;
+      this.sendBtn.disabled = true;
+    }
+
+    addMessage(text, type) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+      messageDiv.textContent = text;
+      
+      this.messagesContainer.appendChild(messageDiv);
+      this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+    }
+
+    attemptReconnect() {
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.reconnectAttempts++;
+        this.addMessage(`Tentativa de reconexão ${this.reconnectAttempts}/${this.maxReconnectAttempts} em ${this.reconnectInterval/1000}s...`, 'system');
+        
+        setTimeout(() => {
+          if (!this.isConnected) {
+            this.connect();
+          }
+        }, this.reconnectInterval);
+      } else {
+        this.addMessage('Máximo de tentativas de reconexão atingido', 'system');
+        this.connectBtn.disabled = false;
+      }
+    }
+  }
+
+  // Inicializar o cliente WebSocket quando a página carregar
+  document.addEventListener('DOMContentLoaded', () => {
+    new WebSocketClient();
+  });
+</script>
+</body>
+</html>

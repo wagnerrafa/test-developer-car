@@ -18,8 +18,27 @@
 2. Instale as dependências: `poetry install`
 3. Crie as migrações: `python manage.py makemigrations`
 4. Execute as migrações: `python manage.py migrate`
-5. Crie um super usuário: `python manage.py createsuperuser`
-6. Inicie o servidor: `python manage.py runserver`
+5. Colete os arquivos estáticos: `python manage.py collectstatic`
+6. Crie um super usuário: `python manage.py createsuperuser`
+7. Inicie o servidor: `python manage.py runserver`
+
+## Executando o Servidor
+
+### Desenvolvimento Local
+Para desenvolvimento local com suporte completo a WebSocket:
+
+```bash
+daphne config.asgi:application --port 8000 -v2
+```
+
+### Produção
+Para ambiente de produção com múltiplos workers:
+
+```bash
+gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 4
+```
+
+**Nota:** O servidor padrão do Django (`python manage.py runserver`) não suporta WebSocket. Use os comandos acima para funcionalidade completa.
 
 ## Configurações Servidor
 
@@ -38,6 +57,144 @@ Para começar a desenvolver a sua aplicação, você pode seguir os seguintes pa
 5. (Opcional) Defina as configurações do admin em `admin.py`.
 
 Comece criando um novo app com o comando `make startapp name=app_name`
+
+# Funcionalidade WebSocket
+
+O projeto inclui suporte completo a WebSocket para comunicação em tempo real entre cliente e servidor.
+
+## Características
+
+- **Identificação única de usuários**: Usuários anônimos recebem UUIDs persistentes via cookies
+- **Salas baseadas em sessão**: Cada usuário (autenticado ou anônimo) tem sua própria sala
+- **Protocolo V1**: Suporte ao protocolo WebSocket V1
+- **Interface web**: Página dedicada para teste de conexões WebSocket
+- **Logs detalhados**: Sistema de logging para debug e monitoramento
+
+## Como Usar
+
+### 1. Acessar a Interface WebSocket
+
+1. Inicie o servidor com suporte a WebSocket:
+   ```bash
+   daphne config.asgi:application --port 8000 -v2
+   ```
+
+2. Acesse a página inicial do servidor: `http://127.0.0.1:8000/`
+
+3. Na seção "Acesso Rápido", clique no botão "WebSocket"
+
+4. A página de teste WebSocket será aberta com:
+   - Botão de conexão/desconexão
+   - Campo para envio de mensagens
+   - Área de exibição de mensagens recebidas
+   - Status da conexão e informações do usuário
+
+### 2. Conectar via JavaScript
+
+```javascript
+// Conectar ao WebSocket
+const socket = new WebSocket('ws://127.0.0.1:8000/site-example/ws/V1/general/', 'V1');
+
+// Eventos
+socket.onopen = function(event) {
+    console.log('Conectado ao WebSocket');
+};
+
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log('Mensagem recebida:', data);
+};
+
+socket.onclose = function(event) {
+    console.log('Conexão fechada');
+};
+
+// Enviar mensagem
+socket.send(JSON.stringify({
+    type: 'message',
+    data: 'Olá, WebSocket!'
+}));
+```
+
+### 3. Estrutura das Salas
+
+- **Usuários autenticados**: `user_{id}_{session_key}`
+- **Usuários anônimos**: `anonymous_{anon_id}` (UUID persistente)
+- **Fallback**: `general` (caso raro sem identificação)
+
+### 4. Tipos de Mensagem
+
+#### Echo (Resposta automática)
+```json
+{
+    "type": "echo",
+    "original_message": "mensagem original",
+    "message_type": "message",
+    "user": "AnonymousUser",
+    "room": "anonymous_uuid",
+    "timestamp": "2025-09-22 14:41:34.611560"
+}
+```
+
+#### Broadcast (Para todos na sala)
+```json
+{
+    "type": "broadcast",
+    "message": "mensagem para todos",
+    "user": "AnonymousUser",
+    "room": "anonymous_uuid",
+    "timestamp": "2025-09-22 14:41:34.611560"
+}
+```
+
+### 5. Configuração Técnica
+
+#### Middleware de Identificação Anônima
+O `AnonymousIdMiddleware` gera automaticamente UUIDs únicos para usuários anônimos:
+
+```python
+# config/middleware.py
+class AnonymousIdMiddleware(MiddlewareMixin):
+    """Middleware que gera um UUID persistente para usuários anônimos."""
+    
+    def process_request(self, request):
+        """Gera ou recupera o ID anônimo do usuário."""
+        if "anon_id" not in request.COOKIES:
+            request.anon_id = str(uuid.uuid4())
+        else:
+            request.anon_id = request.COOKIES["anon_id"]
+```
+
+#### Consumer WebSocket
+```python
+# apps/web_sockets/views_sockets.py
+class GeneralSocket(AbstractMeetingSocket):
+    """WebSocket consumer para sala geral."""
+    current_protocol = 'V1'
+```
+
+### 6. Logs e Debug
+
+O sistema gera logs detalhados para monitoramento:
+
+```
+DEBUG Usuário Anônimo (ID: a1b2c3d4) conectando na sala anonymous_a1b2c3d4-e5f6-7890-abcd-ef1234567890
+DEBUG Usuário ID: 1 conectado na sala user_1_9z4a73k2xtoe38owsdxtqm8edegh61ic
+DEBUG Mensagem recebida de AnonymousUser: Olá, WebSocket!
+```
+
+### 7. Dependências Necessárias
+
+Certifique-se de ter as seguintes dependências instaladas:
+
+```toml
+# pyproject.toml
+channels = "^4.0.0"
+channels-redis = "^4.1.0"
+daphne = "^4.0.0"
+gunicorn = "^21.2.0"
+uvicorn = "^0.24.0"
+```
 
 # Configurações do Projeto
 
@@ -194,14 +351,14 @@ fornecido pelo Django que ajuda a automatizar o processo de execução de testes
     from decouple import config
     from split_settings.tools import include as extend_settings
     
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "drf_base_config.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     
     library_path = sysconfig.get_paths()['purelib']
-    settings_path = path.join(library_path, 'drf_base_config', 'settings.py')
+    settings_path = path.join(library_path, 'config', 'settings.py')
     
     extend_settings(settings_path)
     
-    from drf_base_config.settings import *
+    from config.settings import *
     
     INSTALLED_APPS += [
     'my_app',
@@ -497,11 +654,11 @@ meu_projeto/
 
     from django.urls import path, include
     from django.conf.urls.static import static
-    from drf_base_config.settings import BASE_API_URL
+    from config.settings import BASE_API_URL
     
-    from drf_base_config import urls as base_urls
+    from config import urls as base_urls
     
-    from drf_base_config.settings import MEDIA_URL, MEDIA_ROOT
+    from config.settings import MEDIA_URL, MEDIA_ROOT
     
     
     urlpatterns = [

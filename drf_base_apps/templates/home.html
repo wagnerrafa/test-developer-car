@@ -221,6 +221,85 @@
       background: #4b5563;
     }
 
+    .quick-access-section {
+      background: white;
+      padding: 3rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-access-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #1f2937;
+    }
+
+    .quick-access-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .quick-access-button {
+      display: flex;
+      align-items: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .quick-access-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      border-color: #3b82f6;
+    }
+
+    .swagger-button:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .websocket-button:hover {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+    }
+
+    .button-icon {
+      font-size: 3rem;
+      margin-right: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .button-content h3 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #1f2937;
+    }
+
+    .quick-access-button:hover .button-content h3 {
+      color: white;
+    }
+
+    .button-content p {
+      color: #6b7280;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .quick-access-button:hover .button-content p {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
     body {
       height: auto;
     }
@@ -239,6 +318,27 @@
     <h1 class="hero-title">{{ app_name }}</h1>
     <p class="hero-subtitle">Uma plataforma robusta e moderna para desenvolvimento web</p>
     <div class="hero-version">Versão {{ current_version }}</div>
+  </div>
+
+  <!-- Nova Seção de Acesso Rápido -->
+  <div class="quick-access-section">
+    <h2 class="quick-access-title">Acesso Rápido</h2>
+    <div class="quick-access-buttons">
+      <a href="{% url 'schema-api-swagger' %}" class="quick-access-button swagger-button">
+        <div class="button-icon">📚</div>
+        <div class="button-content">
+          <h3>Documentação API</h3>
+          <p>Acesse a documentação completa da API com Swagger</p>
+        </div>
+      </a>
+      <a href="{% url 'websocket-page' %}" class="quick-access-button websocket-button">
+        <div class="button-icon">🔌</div>
+        <div class="button-content">
+          <h3>WebSocket</h3>
+          <p>Conecte-se via WebSocket para comunicação em tempo real</p>
+        </div>
+      </a>
+    </div>
   </div>
 
   <!-- Seção de Recursos -->
