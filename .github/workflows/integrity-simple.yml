@@ -1,0 +1,77 @@
+name: Integrity Checks (Simple)
+
+on:
+  pull_request:
+    branches: [ '**' ]
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  PYTHON_VERSION: '3.12'
+  # Variáveis de ambiente básicas para Django
+  DATABASE_URL: 'sqlite:///test.db'
+  SECRET_KEY: 'django-insecure-test-key-for-ci-only'
+  DEBUG: 'True'
+  ALLOWED_HOSTS: 'localhost,127.0.0.1'
+  DJANGO_SETTINGS_MODULE: 'config.settings'
+  # Variáveis adicionais necessárias
+  ENVIRONMENT: 'dev'
+  ENV: 'dev'
+  LIST_ALLOWED_HOSTS: 'localhost,127.0.0.1'
+  APP_NAME: 'site_example'
+
+
+jobs:
+  basic-integrity:
+    name: Basic Integrity Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry manually
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Poetry Configuration Check
+        run: poetry check
+
+      - name: Check Django configuration (basic)
+        run: poetry run python manage.py check --settings=config.settings
+
+      - name: Check for unused imports
+        run: poetry run ruff check --select F401 .
+
+      - name: Check for unused variables
+        run: poetry run ruff check --select F841 .
+
+      - name: Check for code simplifications
+        run: poetry run ruff check --select SIM .
+
+      - name: Check for code upgrades
+        run: poetry run ruff check --select UP .
+
+      - name: Check dependency tree
+        run: poetry show --tree
+
+      - name: Validate lock file
+        run: poetry lock
+
+      - name: Check for circular dependencies
+        run: poetry run pipdeptree --warn silence

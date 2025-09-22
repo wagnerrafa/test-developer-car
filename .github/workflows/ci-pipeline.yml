@@ -1,0 +1,320 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  actions: write
+  security-events: write
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  # Job 1: Code Quality Checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Run Black formatting check
+        run: poetry run black --check .
+
+      - name: Run Ruff linting
+        run: poetry run ruff check .
+
+      - name: Run import sorting check
+        run: poetry run ruff check --select I .
+
+  # Job 2: Security Scans (depende do code-quality)
+  security:
+    name: Security Scans
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Run Bandit security scan
+        run: poetry run make bandit-sarif
+
+      - name: Run Semgrep security scan
+        run: poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
+
+      - name: Upload Bandit results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-report.sarif
+
+      - name: Upload Semgrep results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep-report.sarif
+
+  # Job 3: Unit Tests (depende do security)
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: security
+    if: github.event.pull_request.draft == false
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Create test environment file
+        run: |
+          cat > .env << EOF
+          APP_NAME=site_example
+          DEBUG=True
+          ENABLE_DRF=True
+          EXTERNAL_DATABASE=False
+          ENVIRONMENT=dev
+          LIST_ALLOWED_HOSTS=localhost,127.0.0.1
+          FERNET_KEY=ou5SAHd8fIj-gSLGyxPR5q8XraVD-_xlGGOtxpflOUQ=
+          SECRET_KEY="!z-c8j!j29#24^nv#ll-lz!2n3ib2zglb4+gn%%at(=tn9zlo!"
+          DATABASE_URL=sqlite:///test.db
+          EOF
+
+      - name: Run migrations
+        run: poetry run python manage.py migrate --settings=config.settings
+        env:
+          DATABASE_URL: sqlite:///test.db
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: True
+          ENVIRONMENT: dev
+          ENV: dev
+          APP_NAME: site_example
+          DJANGO_SETTINGS_MODULE: config.settings
+          RB_API_USE_MOCK: True
+          NAMU_API_USE_MOCK: True
+
+      - name: Create groups
+        run: poetry run python manage.py create_groups --settings=config.settings
+        env:
+          DATABASE_URL: sqlite:///test.db
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: True
+          ENVIRONMENT: dev
+          ENV: dev
+          APP_NAME: site_example
+          DJANGO_SETTINGS_MODULE: config.settings
+          RB_API_USE_MOCK: True
+          NAMU_API_USE_MOCK: True
+
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
+        env:
+          DATABASE_URL: sqlite:///test.db
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: True
+          ENVIRONMENT: dev
+          ENV: dev
+          APP_NAME: site_example
+          DJANGO_SETTINGS_MODULE: config.settings
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 7
+
+  # Job 4: Dependency Review (depende do unit-tests)
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Run dependency review
+        run: poetry run pipdeptree --warn silence
+
+  # Job 5: Integration Tests (depende do dependency-review)
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: dependency-review
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Create test environment file
+        run: |
+          cat > .env << EOF
+          APP_NAME=site_example
+          DEBUG=True
+          ENABLE_DRF=True
+          EXTERNAL_DATABASE=False
+          ENVIRONMENT=dev
+          LIST_ALLOWED_HOSTS=localhost,127.0.0.1
+          FERNET_KEY=ou5SAHd8fIj-gSLGyxPR5q8XraVD-_xlGGOtxpflOUQ=
+          SECRET_KEY="!z-c8j!j29#24^nv#ll-lz!2n3ib2zglb4+gn%%at(=tn9zlo!"
+          DATABASE_URL=sqlite:///test.db
+          EOF
+
+      - name: Run integration tests
+        run: poetry run python manage.py test --keepdb --tag=integration
+        env:
+          DATABASE_URL: sqlite:///test.db
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: True
+          ENVIRONMENT: dev
+          ENV: dev
+          APP_NAME: site_example
+          DJANGO_SETTINGS_MODULE: config.settings
