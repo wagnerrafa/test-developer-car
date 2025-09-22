@@ -21,6 +21,7 @@ env:
   ENV: 'dev'
   LIST_ALLOWED_HOSTS: 'localhost,127.0.0.1'
   APP_NAME: 'site_example'
+  EXTERNAL_DATABASE: True
 
 
 jobs:

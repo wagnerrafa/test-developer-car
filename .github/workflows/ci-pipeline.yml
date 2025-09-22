@@ -168,7 +168,7 @@ jobs:
           APP_NAME=site_example
           DEBUG=True
           ENABLE_DRF=True
-          EXTERNAL_DATABASE=False
+          EXTERNAL_DATABASE=True
           ENVIRONMENT=dev
           LIST_ALLOWED_HOSTS=localhost,127.0.0.1
           FERNET_KEY=ou5SAHd8fIj-gSLGyxPR5q8XraVD-_xlGGOtxpflOUQ=
@@ -187,8 +187,7 @@ jobs:
           ENV: dev
           APP_NAME: site_example
           DJANGO_SETTINGS_MODULE: config.settings
-          RB_API_USE_MOCK: True
-          NAMU_API_USE_MOCK: True
+          EXTERNAL_DATABASE: True
 
       - name: Create groups
         run: poetry run python manage.py create_groups --settings=config.settings
@@ -201,8 +200,7 @@ jobs:
           ENV: dev
           APP_NAME: site_example
           DJANGO_SETTINGS_MODULE: config.settings
-          RB_API_USE_MOCK: True
-          NAMU_API_USE_MOCK: True
+          EXTERNAL_DATABASE: True
 
       - name: Run tests with coverage
         run: poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
@@ -215,6 +213,7 @@ jobs:
           ENV: dev
           APP_NAME: site_example
           DJANGO_SETTINGS_MODULE: config.settings
+          EXTERNAL_DATABASE: True
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -298,7 +297,7 @@ jobs:
           APP_NAME=site_example
           DEBUG=True
           ENABLE_DRF=True
-          EXTERNAL_DATABASE=False
+          EXTERNAL_DATABASE=True
           ENVIRONMENT=dev
           LIST_ALLOWED_HOSTS=localhost,127.0.0.1
           FERNET_KEY=ou5SAHd8fIj-gSLGyxPR5q8XraVD-_xlGGOtxpflOUQ=
@@ -317,3 +316,4 @@ jobs:
           ENV: dev
           APP_NAME: site_example
           DJANGO_SETTINGS_MODULE: config.settings
+          EXTERNAL_DATABASE: True

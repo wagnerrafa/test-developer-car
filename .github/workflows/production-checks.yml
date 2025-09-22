@@ -49,7 +49,7 @@ jobs:
           APP_NAME=site_example
           DEBUG=False
           ENABLE_DRF=True
-          EXTERNAL_DATABASE=False
+          EXTERNAL_DATABASE=True
           ENVIRONMENT=prod
           ENV=prod
           LIST_ALLOWED_HOSTS=localhost,127.0.0.1
