@@ -45,53 +45,16 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: |
-          echo "🔍 Debugging directory structure..."
-          echo "Current directory: $(pwd)"
-          echo "GitHub workspace: ${{ github.workspace }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Contents of current directory:"
-          ls -la
-          echo "Contents of GitHub workspace:"
-          ls -la ${{ github.workspace }}
-          echo "Looking for pyproject.toml..."
-          find . -name "pyproject.toml" -type f
-          find ${{ github.workspace }} -name "pyproject.toml" -type f
-          echo "Changing to GitHub workspace..."
-          cd ${{ github.workspace }}
-          echo "After cd, current directory: $(pwd)"
-          echo "Contents after cd:"
-          ls -la
-          if [ -f "pyproject.toml" ]; then
-            echo "✅ pyproject.toml found!"
-            poetry install --no-interaction --no-ansi
-          else
-            echo "❌ pyproject.toml still not found"
-            echo "Trying to find it in subdirectories..."
-            find . -name "pyproject.toml" -type f
-            echo "Checking if we're in the right repository..."
-            echo "Repository name: ${{ github.repository }}"
-            echo "Repository path: ${{ github.workspace }}"
-            echo "Current branch: ${{ github.ref_name }}"
-            echo "Trying to find pyproject.toml in parent directories..."
-            find /home/runner/work -name "pyproject.toml" -type f 2>/dev/null || echo "No pyproject.toml found in /home/runner/work"
-            exit 1
-          fi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Run Black formatting check
-        run: |
-          cd ${{ github.workspace }}
-          poetry run black --check .
+        run: poetry run black --check .
 
       - name: Run Ruff linting
-        run: |
-          cd ${{ github.workspace }}
-          poetry run ruff check .
+        run: poetry run ruff check .
 
       - name: Run import sorting check
-        run: |
-          cd ${{ github.workspace }}
-          poetry run ruff check --select I .
+        run: poetry run ruff check --select I .
 
   # Job 2: Security Scans (depende do code-quality)
   security:
@@ -123,19 +86,13 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Run Bandit security scan
-        run: |
-          cd ${{ github.workspace }}
-          poetry run make bandit-sarif
+        run: poetry run make bandit-sarif
 
       - name: Run Semgrep security scan
-        run: |
-          cd ${{ github.workspace }}
-          poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
+        run: poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
 
       - name: Upload Bandit results to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -204,13 +161,10 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Create test environment file
         run: |
-          cd ${{ github.workspace }}
           cat > .env << EOF
           APP_NAME=site_example
           DEBUG=True
@@ -224,9 +178,7 @@ jobs:
           EOF
 
       - name: Run migrations
-        run: |
-          cd ${{ github.workspace }}
-          poetry run python manage.py migrate --settings=config.settings
+        run: poetry run python manage.py migrate --settings=config.settings
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -240,9 +192,7 @@ jobs:
           NAMU_API_USE_MOCK: True
 
       - name: Create groups
-        run: |
-          cd ${{ github.workspace }}
-          poetry run python manage.py create_groups --settings=config.settings
+        run: poetry run python manage.py create_groups --settings=config.settings
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -256,9 +206,7 @@ jobs:
           NAMU_API_USE_MOCK: True
 
       - name: Run tests with coverage
-        run: |
-          cd ${{ github.workspace }}
-          poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
+        run: poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -308,14 +256,10 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Run dependency review
-        run: |
-          cd ${{ github.workspace }}
-          poetry run pipdeptree --warn silence
+        run: poetry run pipdeptree --warn silence
 
   # Job 5: Integration Tests (depende do dependency-review)
   integration:
@@ -347,13 +291,10 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Create test environment file
         run: |
-          cd ${{ github.workspace }}
           cat > .env << EOF
           APP_NAME=site_example
           DEBUG=True
@@ -367,9 +308,7 @@ jobs:
           EOF
 
       - name: Run integration tests
-        run: |
-          cd ${{ github.workspace }}
-          poetry run python manage.py test --keepdb --tag=integration
+        run: poetry run python manage.py test --keepdb --tag=integration
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0

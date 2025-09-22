@@ -47,51 +47,31 @@ jobs:
           poetry config virtualenvs.in-project true
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Poetry Configuration Check
-        run: |
-          cd ${{ github.workspace }}
-          poetry check
+        run: poetry check
 
       - name: Check Django configuration (basic)
-        run: |
-          cd ${{ github.workspace }}
-          poetry run python manage.py check --settings=config.settings
+        run: poetry run python manage.py check --settings=config.settings
 
       - name: Check for unused imports
-        run: |
-          cd ${{ github.workspace }}
-          poetry run ruff check --select F401 .
+        run: poetry run ruff check --select F401 .
 
       - name: Check for unused variables
-        run: |
-          cd ${{ github.workspace }}
-          poetry run ruff check --select F841 .
+        run: poetry run ruff check --select F841 .
 
       - name: Check for code simplifications
-        run: |
-          cd ${{ github.workspace }}
-          poetry run ruff check --select SIM .
+        run: poetry run ruff check --select SIM .
 
       - name: Check for code upgrades
-        run: |
-          cd ${{ github.workspace }}
-          poetry run ruff check --select UP .
+        run: poetry run ruff check --select UP .
 
       - name: Check dependency tree
-        run: |
-          cd ${{ github.workspace }}
-          poetry show --tree
+        run: poetry show --tree
 
       - name: Validate lock file
-        run: |
-          cd ${{ github.workspace }}
-          poetry lock
+        run: poetry lock
 
       - name: Check for circular dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry run pipdeptree --warn silence
+        run: poetry run pipdeptree --warn silence

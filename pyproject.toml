@@ -1,0 +1,271 @@
+[tool.poetry]
+name = "drf_base_apps"
+version = "0.2.0"
+description = "Site Example Project"
+authors = ["Site Example"]
+readme = "README.md"
+packages = [
+    { include = "config" },
+    { include = "drf_base_apps" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+django = ">=5.2,<6.0"
+colorama = ">=0.4.6,<0.5.0"
+coreapi = ">=2.3.3,<3.0.0"
+coreschema = ">=0.0.4,<0.0.5"
+cryptography = ">=44.0.2,<45.0.0"
+dj-config-url = ">=0.1.1,<0.2.0"
+django-cors-headers = ">=4.7.0,<5.0.0"
+django-crum = ">=0.7.9,<0.8.0"
+django-debug-toolbar = ">=5.1.0,<6.0.0"
+django-extensions = ">=4.1,<5.0"
+django-import-export = ">=4.3.7,<5.0.0"
+djangorestframework = ">=3.16.0,<4.0.0"
+drf-api-logger = ">=1.1.19,<2.0.0"
+drf-standardized-errors = ">=0.14.1,<0.16.0"
+drf-yasg = ">=1.21.10,<2.0.0"
+faker = ">=37.1.0,<38.0.0"
+locust = ">=2.36.2,<3.0.0"
+model-bakery = ">=1.20.4,<2.0.0"
+pillow = ">=11.2.1,<12.0.0"
+psycopg2-binary = ">=2.9.10,<3.0.0"
+pyopenssl = ">=25.0.0,<26.0.0"
+python-decouple = ">=3.8,<4.0"
+python-dotenv = ">=1.1.0,<2.0.0"
+requests = ">=2.32.3,<3.0.0"
+unidecode = ">=1.4.0,<2.0.0"
+django-log-viewer = ">=1.1.8,<2.0.0"
+django-csp = ">=4.0,<5.0"
+djangorestframework-simplejwt = ">=5.5.0,<6.0.0"
+split-settings = ">=1.0.0,<2.0.0"
+gunicorn = ">=23.0.0,<24.0.0"
+django-redis = ">=5.4.0,<6.0.0"
+django-storages = ">=1.14.6,<2.0.0"
+boto3 = ">=1.34.0,<2.0.0"
+dalf = "^0.3.0"
+django-colorfield = "^0.14.0"
+channels = "^4.3.1"
+channels-redis = "^4.3.0"
+cloudpickle = "^3.1.1"
+daphne = "^4.2.1"
+twisted = {extras = ["http2", "tls"], version = "^25.5.0"}
+uvicorn = "^0.36.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+ruff = "^0.12.8"
+bandit = "^1.8.3"
+pipdeptree = "^2.26.1"
+pre-commit = "^4.2.0"
+commitizen = "^3.20.0"
+semgrep = "^1.60.0"
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+pytest-django = "^4.11.1"
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+# Desabilitar formatação do Ruff para evitar conflitos com Black
+# Usar apenas o Black para formatação
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "DJ", # django
+    "N",  # pep8-naming
+    "RUF", # ruff-specific rules
+    "D",  # pydocstyle
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "E402",  # Necessary not top level to setup Django
+    "RUF012",  # Mutable class attributes should be annotated with typing.ClassVar
+    "E203",  # whitespace before ':' (black style)
+    "D203",  # incompatível com D211
+    "D212",  # incompatível com D213
+]
+
+[tool.ruff.lint.per-file-ignores]
+"migrations/*" = ["DJ001", "DJ003", "DJ006", "DJ008", "RUF012", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
+"*/migrations/*" = ["DJ001", "DJ003", "DJ006", "DJ008", "RUF012", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107"]
+"apps/shared/management/commands/generate_*.py" = ["S105", "S106"]
+"config/settings.py" = ["F405", "F403", "F401"]
+
+
+# Configuração específica do isort para padronizar imports
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-wrap-aliases = true
+known-first-party = ["apps"]
+known-third-party = [
+    "celery",
+    "django_celery_results",
+    "django_colorfield",
+    "boto3",
+    "django_storages",
+    "pandas",
+    "openpyxl",
+    "exponent_server_sdk",
+    "geopy",
+    "colorama",
+    "coreschema",
+    "cryptography",
+    "dj_config_url",
+    "django_cors_headers",
+    "django_crum",
+    "django_debug_toolbar",
+    "django_extensions",
+    "django_import_export",
+    "djangorestframework",
+    "drf_api_logger",
+    "drf_standardized_errors",
+    "drf_yasg",
+    "faker",
+    "locust",
+    "model_bakery",
+    "pillow",
+    "psycopg2",
+    "pyopenssl",
+    "python_decouple",
+    "python_dotenv",
+    "requests",
+    "unidecode",
+    "django_log_viewer",
+    "django_csp",
+    "djangorestframework_simplejwt",
+    "split_settings",
+    "gunicorn",
+    "django_redis",
+    "dalf",
+    "coreapi",
+]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+# Configuração do isort para compatibilidade com PyCharm
+[tool.isort]
+profile = "black"
+line_length = 120
+combine_as_imports = true
+force_wrap_aliases = true
+known_django = ["django"]
+known_first_party = ["apps"]
+known_third_party = [
+    "celery",
+    "django_celery_results",
+    "django_colorfield",
+    "boto3",
+    "django_storages",
+    "pandas",
+    "openpyxl",
+    "exponent_server_sdk",
+    "geopy",
+    "colorama",
+    "coreschema",
+    "cryptography",
+    "dj_config_url",
+    "django_cors_headers",
+    "django_crum",
+    "django_debug_toolbar",
+    "django_extensions",
+    "django_import_export",
+    "djangorestframework",
+    "drf_api_logger",
+    "drf_standardized_errors",
+    "drf_yasg",
+    "faker",
+    "locust",
+    "model_bakery",
+    "pillow",
+    "psycopg2",
+    "pyopenssl",
+    "python_decouple",
+    "python_dotenv",
+    "requests",
+    "unidecode",
+    "django_log_viewer",
+    "django_csp",
+    "djangorestframework_simplejwt",
+    "split_settings",
+    "gunicorn",
+    "django_redis",
+    "dalf",
+    "coreapi",
+]
+section_order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+version_files = [
+    "pyproject.toml:version"
+]
+
+[tool.commitizen.customize]
+message_template = "{{change_type}}{{scope}}: {{message}}"
+example = "feat: adiciona nova funcionalidade"
+schema = "<type>(<scope>): <subject>"
+schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|chore|ci|revert|build|wip|hotfix|feature|bugfix)(\\([a-z-]+\\))?: .{1,72}$"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--disable-warnings",
+]
+testpaths = ["tests", "apps"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+

@@ -35,26 +35,16 @@ jobs:
           poetry config virtualenvs.in-project true
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry install --no-interaction --no-ansi
+        run: poetry install --no-interaction --no-ansi
 
       - name: Check dependency tree
-        run: |
-          cd ${{ github.workspace }}
-          poetry show --tree
+        run: poetry show --tree
 
       - name: Check for outdated dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry show --outdated
+        run: poetry show --outdated
 
       - name: Validate lock file
-        run: |
-          cd ${{ github.workspace }}
-          poetry lock
+        run: poetry lock
 
       - name: Check for circular dependencies
-        run: |
-          cd ${{ github.workspace }}
-          poetry run pipdeptree --warn silence 
+        run: poetry run pipdeptree --warn silence 
