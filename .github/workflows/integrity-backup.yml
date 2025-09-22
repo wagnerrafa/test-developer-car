@@ -36,15 +36,20 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Check dependency tree
         run: poetry show --tree
+        working-directory: .
 
       - name: Check for outdated dependencies
         run: poetry show --outdated
+        working-directory: .
 
       - name: Validate lock file
         run: poetry lock
+        working-directory: .
 
       - name: Check for circular dependencies
-        run: poetry run pipdeptree --warn silence 
+        run: poetry run pipdeptree --warn silence
+        working-directory: . 

@@ -46,15 +46,19 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Run Black formatting check
         run: poetry run black --check .
+        working-directory: .
 
       - name: Run Ruff linting
         run: poetry run ruff check .
+        working-directory: .
 
       - name: Run import sorting check
         run: poetry run ruff check --select I .
+        working-directory: .
 
   # Job 2: Security Scans (depende do code-quality)
   security:
@@ -87,12 +91,15 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Run Bandit security scan
         run: poetry run make bandit-sarif
+        working-directory: .
 
       - name: Run Semgrep security scan
         run: poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
+        working-directory: .
 
       - name: Upload Bandit results to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -162,6 +169,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Create test environment file
         run: |
@@ -179,6 +187,7 @@ jobs:
 
       - name: Run migrations
         run: poetry run python manage.py migrate --settings=config.settings
+        working-directory: .
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -193,6 +202,7 @@ jobs:
 
       - name: Create groups
         run: poetry run python manage.py create_groups --settings=config.settings
+        working-directory: .
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -207,6 +217,7 @@ jobs:
 
       - name: Run tests with coverage
         run: poetry run pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term --cache-clear -s
+        working-directory: .
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
@@ -257,9 +268,11 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Run dependency review
         run: poetry run pipdeptree --warn silence
+        working-directory: .
 
   # Job 5: Integration Tests (depende do dependency-review)
   integration:
@@ -292,6 +305,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Create test environment file
         run: |
@@ -309,6 +323,7 @@ jobs:
 
       - name: Run integration tests
         run: poetry run python manage.py test --keepdb --tag=integration
+        working-directory: .
         env:
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0

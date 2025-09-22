@@ -43,6 +43,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Create .env environment file
         run: |
@@ -63,6 +64,7 @@ jobs:
 
       - name: Check production Django configuration
         run: poetry run python manage.py check --deploy
+        working-directory: .
 
       - name: Check for production settings issues
         run: |
@@ -79,6 +81,7 @@ jobs:
 
       - name: Check static files collection
         run: poetry run python manage.py collectstatic --dry-run --noinput
+        working-directory: .
 
       - name: Check for hardcoded secrets
         run: |
@@ -198,6 +201,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
+        working-directory: .
 
       - name: Run Bandit security scan
         run: |
@@ -213,6 +217,7 @@ jobs:
           poetry run make bandit-sarif
           echo "📁 Verificando se o arquivo foi criado..."
           ls -la *.sarif || echo "Nenhum arquivo .sarif encontrado"
+        working-directory: .
 
       - name: Run Semgrep security scan
         run: |
@@ -221,6 +226,7 @@ jobs:
           poetry run semgrep scan --config=auto --sarif --output semgrep-report.sarif || true
           echo "📁 Verificando se o arquivo foi criado..."
           ls -la *.sarif || echo "Nenhum arquivo .sarif encontrado"
+        working-directory: .
 
       - name: Check if SARIF files exist
         run: |
@@ -228,94 +234,21 @@ jobs:
           if [ -f "bandit-report.sarif" ]; then
             echo "✅ bandit-report.sarif existe"
             ls -la bandit-report.sarif
-            # Verificar se o arquivo tem conteúdo válido
-            if [ ! -s "bandit-report.sarif" ]; then
-              echo "⚠️  bandit-report.sarif está vazio, criando SARIF válido..."
-              cat > bandit-report.sarif << 'EOF'
-{
-  "version": "2.1.0",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "name": "Bandit",
-          "version": "1.7.0",
-          "informationUri": "https://bandit.readthedocs.io/"
-        }
-      },
-      "results": []
-    }
-  ]
-}
-EOF
-            fi
           else
             echo "❌ bandit-report.sarif não foi criado"
             echo "Criando arquivo SARIF válido..."
-            cat > bandit-report.sarif << 'EOF'
-{
-  "version": "2.1.0",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "name": "Bandit",
-          "version": "1.7.0",
-          "informationUri": "https://bandit.readthedocs.io/"
-        }
-      },
-      "results": []
-    }
-  ]
-}
-EOF
+            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"Bandit","version":"1.7.0","informationUri":"https://bandit.readthedocs.io/"}},"results":[]}]}' > bandit-report.sarif
           fi
 
           if [ -f "semgrep-report.sarif" ]; then
             echo "✅ semgrep-report.sarif existe"
             ls -la semgrep-report.sarif
-            # Verificar se o arquivo tem conteúdo válido
-            if [ ! -s "semgrep-report.sarif" ]; then
-              echo "⚠️  semgrep-report.sarif está vazio, criando SARIF válido..."
-              cat > semgrep-report.sarif << 'EOF'
-{
-  "version": "2.1.0",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "name": "Semgrep",
-          "version": "1.0.0",
-          "informationUri": "https://semgrep.dev/"
-        }
-      },
-      "results": []
-    }
-  ]
-}
-EOF
-            fi
           else
             echo "❌ semgrep-report.sarif não foi criado"
             echo "Criando arquivo SARIF válido..."
-            cat > semgrep-report.sarif << 'EOF'
-{
-  "version": "2.1.0",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "name": "Semgrep",
-          "version": "1.0.0",
-          "informationUri": "https://semgrep.dev/"
-        }
-      },
-      "results": []
-    }
-  ]
-}
-EOF
+            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"Semgrep","version":"1.0.0","informationUri":"https://semgrep.dev/"}},"results":[]}]}' > semgrep-report.sarif
           fi
+        working-directory: .
 
       - name: Check for SQL injection vulnerabilities
         run: |
