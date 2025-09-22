@@ -1,0 +1,50 @@
+name: Integrity Checks (Backup)
+
+on:
+  pull_request:
+    branches: [ '**' ]
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  dependency-integrity-backup:
+    name: Dependency Integrity (Backup Method)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry via pip
+        run: |
+          pip install poetry
+          poetry --version
+
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Check dependency tree
+        run: poetry show --tree
+
+      - name: Check for outdated dependencies
+        run: poetry show --outdated
+
+      - name: Validate lock file
+        run: poetry lock
+
+      - name: Check for circular dependencies
+        run: poetry run pipdeptree --warn silence 

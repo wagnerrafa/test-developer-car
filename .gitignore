@@ -20,7 +20,6 @@ backup_mypy.ini
 .agc-prod.env
 log/
 .watchmanconfig
-pyproject.toml
 watchdog_config.yaml
 .bandit
 static_prod

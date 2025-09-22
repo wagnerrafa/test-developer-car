@@ -1,0 +1,41 @@
+name: Tag & GitHub Release
+
+on:
+  push:
+    branches: [main]   # só depois do merge aprovado
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  actions: write
+  pull-requests: write
+
+jobs:
+  bump-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # necessário para ler tags anteriores
+
+      # Calcula a próxima versão semântica lendo os commit-messages
+      - id: tagger
+        uses: anothrNick/github-tag-action@v1          # marketplace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: minor                          # patch | minor | major
+          WITH_V: true                                 # gera vX.Y.Z
+
+      # Publica uma Release bonitinha com changelog automático
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tagger.outputs.new_tag }}
+          name: Release ${{ steps.tagger.outputs.new_tag }}
+          generate_release_notes: true                 # usa o diff
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+env:
+  PYTHON_VERSION: '3.12' 
