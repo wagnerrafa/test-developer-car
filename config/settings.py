@@ -25,4 +25,31 @@ extend_settings(settings_path)
 from drf_base_config.settings import *
 
 # Add project-specific apps to INSTALLED_APPS
-INSTALLED_APPS += []
+INSTALLED_APPS += ["apps.cars"]
+
+ROOT_URLCONF = "config.urls"
+
+# Definição de configurações sockets
+channel_redis_url = config("REDIS_URL", default="redis://localhost:6379/6")
+channel_redis_cache = config("REDIS_URL", default="redis://localhost:6379/7")
+celery_url = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/8")
+
+BASE_SOCKETS = f"{APP_NAME}/ws/V1/"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "apps.web_sockets.channel_layer.ExtendedRedisChannelLayer",
+        "CONFIG": {
+            "hosts": [channel_redis_url],
+            "symmetric_encryption_keys": [SECRET_KEY],
+            "capacity": 500,  # default 100
+        },
+    },
+    "general": {
+        "BACKEND": "apps.web_sockets.channel_layer.ExtendedRedisChannelLayer",
+        "CONFIG": {
+            "hosts": [channel_redis_url],
+            "symmetric_encryption_keys": [SECRET_KEY],
+            "capacity": 500,  # default 100
+        },
+    },
+}

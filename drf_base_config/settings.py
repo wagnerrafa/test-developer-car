@@ -678,8 +678,7 @@ if ENABLE_TOKEN:  # Se autenticação por token está habilitada
 REST_FRAMEWORK = {
     # Setting Global permissions, to require authentication
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",  # Permissão padrão: usuário autenticado
-        "drf_base_apps.core.permission.views.CheckHasPermission",  # Verificação customizada de permissões
+        "rest_framework.permissions.AllowAny",  # Permissão padrão: usuário autenticado
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.ScopedRateThrottle",  # Throttling por escopo
@@ -794,28 +793,3 @@ else:
 TEST_RUNNER = "drf_base_apps.test_runner.CustomTestRunner"
 with contextlib.suppress(NameError):
     DATABASES["default"]["TEST"] = db_test
-
-# Definição de configurações sockets
-channel_redis_url = config("REDIS_URL", default="redis://localhost:6379/6")
-channel_redis_cache = config("REDIS_URL", default="redis://localhost:6379/7")
-celery_url = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/8")
-
-BASE_SOCKETS = f"{APP_NAME}/ws/V1/"
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "apps.web_sockets.channel_layer.ExtendedRedisChannelLayer",
-        "CONFIG": {
-            "hosts": [channel_redis_url],
-            "symmetric_encryption_keys": [SECRET_KEY],
-            "capacity": 500,  # default 100
-        },
-    },
-    "general": {
-        "BACKEND": "apps.web_sockets.channel_layer.ExtendedRedisChannelLayer",
-        "CONFIG": {
-            "hosts": [channel_redis_url],
-            "symmetric_encryption_keys": [SECRET_KEY],
-            "capacity": 500,  # default 100
-        },
-    },
-}

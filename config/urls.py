@@ -22,9 +22,11 @@ from django.urls import include, path
 
 from config.settings import MEDIA_ROOT, MEDIA_URL
 from drf_base_config import urls as base_urls
+from drf_base_config.settings import BASE_API_URL
 
 urlpatterns = [
     path("", include(base_urls)),
+    path(f"{BASE_API_URL}cars/", include("apps.cars.urls")),
 ]
 
 urlpatterns += static("/" + MEDIA_URL, document_root=MEDIA_ROOT)
