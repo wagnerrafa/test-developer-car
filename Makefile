@@ -36,6 +36,9 @@ shell:  ## Abre o shell interativo com contexto do Django
 	poetry run python manage.py shell
 
 test:  ## Executa os testes da aplicação
+	poetry run python manage.py test --keepdb
+
+test-save:  ## Executa os testes da aplicação
 	poetry run python manage.py test
 
 lint:  ## Executa linting com Ruff

@@ -172,6 +172,8 @@ class CarNameDetailSchema(CarNameSchema):
     serializer = CarNameSchema()
     """
 
+    brand_id = serializers.UUIDField(required=False)
+
     class Meta:
         """Meta options for CarNameDetailSchema."""
 
@@ -260,6 +262,11 @@ class CarDetailSchema(CarSchema):
     Usage example:
     serializer = CarSchema()
     """
+
+    car_name_id = serializers.UUIDField(required=False)
+    car_model_id = serializers.UUIDField(required=False)
+    color_id = serializers.UUIDField(required=False)
+    engine_id = serializers.UUIDField(required=False)
 
     class Meta:
         """Meta options for CarDetailSchema."""
