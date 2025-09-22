@@ -46,10 +46,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ${{ github.workspace }}
-          pwd
+          echo "🔍 Debugging directory structure..."
+          echo "Current directory: $(pwd)"
+          echo "GitHub workspace: ${{ github.workspace }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Contents of current directory:"
           ls -la
-          poetry install --no-interaction --no-ansi
+          echo "Contents of GitHub workspace:"
+          ls -la ${{ github.workspace }}
+          echo "Looking for pyproject.toml..."
+          find . -name "pyproject.toml" -type f
+          find ${{ github.workspace }} -name "pyproject.toml" -type f
+          echo "Changing to GitHub workspace..."
+          cd ${{ github.workspace }}
+          echo "After cd, current directory: $(pwd)"
+          echo "Contents after cd:"
+          ls -la
+          if [ -f "pyproject.toml" ]; then
+            echo "✅ pyproject.toml found!"
+            poetry install --no-interaction --no-ansi
+          else
+            echo "❌ pyproject.toml still not found"
+            echo "Trying to find it in subdirectories..."
+            find . -name "pyproject.toml" -type f
+            exit 1
+          fi
 
       - name: Run Black formatting check
         run: |
