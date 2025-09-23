@@ -1,0 +1,5 @@
+---
+description: always run make lint-fix e make format before git add
+globs:
+alwaysApply: true
+---

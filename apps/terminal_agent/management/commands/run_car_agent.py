@@ -189,7 +189,10 @@ class Command(BaseCommand):
         """Exibe mensagem de boas-vindas."""
         # Detectar tipo de LLM
         llm_type = type(self.llm).__name__
-        llm_info = f"Powered by Ollama ({self.llm.model})" if "Ollama" in llm_type else "Powered by SimpleLLM"
+        if "Ollama" in llm_type:
+            llm_info = f"Powered by Ollama ({self.llm.model})"
+        else:
+            llm_info = "Powered by SimpleLLM"
 
         welcome_text = Text()
         welcome_text.append("🚗 ", style="bold blue")
@@ -211,7 +214,7 @@ class Command(BaseCommand):
         goodbye_text.append("\n", style="white")
         goodbye_text.append("Espero ter ajudado você a encontrar o carro ideal! 🚗", style="white")
 
-        logger.info("👋 Agente Virtual finalizado")
+        self.console.print(Panel(goodbye_text, title="👋 Até logo!", border_style="green"))
 
     def _display_agent_response(self, response: str):
         """Exibe resposta do agente."""
@@ -221,7 +224,7 @@ class Command(BaseCommand):
         agent_text.append("\n\n", style="white")
         agent_text.append(response, style="white")
 
-        logger.info("Agente Virtual ativo")
+        self.console.print(Panel(agent_text, border_style="blue"))
 
     def _process_user_input(self, user_input: str) -> str:
         """Processa entrada do usuário e gera resposta."""
