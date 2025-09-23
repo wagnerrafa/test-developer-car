@@ -189,10 +189,7 @@ class Command(BaseCommand):
         """Exibe mensagem de boas-vindas."""
         # Detectar tipo de LLM
         llm_type = type(self.llm).__name__
-        if "Ollama" in llm_type:
-            llm_info = f"Powered by Ollama ({self.llm.model})"
-        else:
-            llm_info = "Powered by SimpleLLM"
+        llm_info = f"Powered by Ollama ({self.llm.model})" if "Ollama" in llm_type else "Powered by SimpleLLM"
 
         welcome_text = Text()
         welcome_text.append("🚗 ", style="bold blue")
