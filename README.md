@@ -48,6 +48,61 @@ gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker -b 0.0.0.0:800
 
 ## Uso
 
+### Protocolo MCP via WebSocket
+
+O projeto agora inclui implementação completa do **Protocolo MCP (Model Context Protocol)** via WebSocket para busca dinâmica de carros em tempo real.
+
+#### Funcionalidades MCP
+- **Busca em tempo real**: Filtros dinâmicos de carros via WebSocket
+- **Filtros avançados**: Marca, ano, combustível, transmissão, cor, motor, preço
+- **Paginação**: Suporte completo a paginação via MCP
+- **Ordenação**: Por preço, ano, quilometragem, etc.
+- **Histórico**: Manter histórico de buscas por sessão
+- **Métricas**: Monitoramento de uso e performance
+
+#### Endpoints WebSocket MCP
+- **MCP V1**: `/app/ws/V1/mcp/cars/` - Funcionalidades básicas
+- **MCP V2**: `/app/ws/V1/mcp/cars/v2/` - Funcionalidades avançadas + métricas
+
+#### Ações Suportadas
+- `search_cars`: Busca carros com filtros
+- `get_brands`: Lista marcas disponíveis
+- `get_colors`: Lista cores disponíveis
+- `get_engines`: Lista motores disponíveis
+- `get_car_details`: Detalhes de um carro específico
+- `get_filters_options`: Opções disponíveis para cada filtro
+
+#### Exemplo de Uso Cliente
+```javascript
+const client = new MCPCarClient('ws://localhost:8000/app/ws/V1/mcp/cars/');
+await client.connect();
+
+// Buscar carros Toyota com filtros
+await client.searchCars({
+    brand_name: 'Toyota',
+    year_manufacture_min: 2020,
+    price_max: 100000
+}, {
+    page: 1,
+    page_size: 20,
+    ordering: '-price'
+});
+```
+
+Para documentação completa, consulte: [Guia MCP WebSocket](MCP_WEBSOCKET_GUIDE.md)
+
+#### Demonstração Interativa
+Acesse a demonstração interativa em: `http://localhost:8000/mcp-demo/`
+
+A página de demonstração inclui:
+- Interface visual para busca de carros
+- Filtros dinâmicos em tempo real
+- Conexão WebSocket automática
+- Paginação e ordenação
+- Exemplos de uso do protocolo MCP
+
+### Desenvolvimento de Aplicações
+
 Para começar a desenvolver a sua aplicação, você pode seguir os seguintes passos:
 
 1. Defina os modelos em `models.py`, utilizando a classe `AbstractModel` como base.

@@ -18,15 +18,27 @@ Including another URLconf
 """
 
 from django.conf.urls.static import static
+from django.shortcuts import render
 from django.urls import include, path
 
 from config.settings import MEDIA_ROOT, MEDIA_URL
 from drf_base_config import urls as base_urls
-from drf_base_config.settings import BASE_API_URL
+from drf_base_config.settings import APP_NAME, BASE_API_URL, CURRENT_VERSION
+
+
+def mcp_demo_view(request):
+    """View para demonstração MCP com contexto."""
+    websocket_url = f"ws://{request.get_host()}/{APP_NAME}/ws/V1/mcp/cars/"
+
+    context = {"app_name": APP_NAME, "current_version": CURRENT_VERSION, "websocket_url": websocket_url}
+
+    return render(request, "mcp_car_search.html", context)
+
 
 urlpatterns = [
     path("", include(base_urls)),
     path(f"{BASE_API_URL}cars/", include("apps.cars.urls")),
+    path("mcp-demo/", mcp_demo_view, name="mcp_demo"),
 ]
 
 urlpatterns += static("/" + MEDIA_URL, document_root=MEDIA_ROOT)

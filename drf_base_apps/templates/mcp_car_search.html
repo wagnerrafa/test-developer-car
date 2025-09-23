@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Carros - MCP WebSocket</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .status {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            transition: background 0.3s;
+        }
+
+        .status-dot.connected {
+            background: #28a745;
+        }
+
+        .filters {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .filters h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .results {
+            padding: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-count {
+            font-size: 1.1em;
+            color: #495057;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #e9ecef;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .car-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .car-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .car-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .car-brand {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .car-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .car-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .car-detail-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 2px;
+        }
+
+        .car-detail-value {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .car-price {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #28a745;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .metrics {
+            background: #e9ecef;
+            padding: 15px 30px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cars-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Busca de Carros</h1>
+            <p>Busca dinâmica em tempo real via Protocolo MCP WebSocket</p>
+        </div>
+
+        <div class="status">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Desconectado</span>
+            </div>
+            <div id="metrics" class="metrics" style="display: none;">
+                <span id="metricsText">Métricas não disponíveis</span>
+            </div>
+        </div>
+
+        <div class="filters">
+            <h3>🔍 Filtros de Busca</h3>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="brandSelect">Marca</label>
+                    <select id="brandSelect">
+                        <option value="">Todas as marcas</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="colorSelect">Cor</label>
+                    <select id="colorSelect">
+                        <option value="">Todas as cores</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="engineSelect">Motor</label>
+                    <select id="engineSelect">
+                        <option value="">Todos os motores</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="fuelTypeSelect">Combustível</label>
+                    <select id="fuelTypeSelect">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="transmissionSelect">Transmissão</label>
+                    <select id="transmissionSelect">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="yearMin">Ano Mínimo</label>
+                    <input type="number" id="yearMin" placeholder="2020" min="1900" max="9999">
+                </div>
+
+                <div class="filter-group">
+                    <label for="yearMax">Ano Máximo</label>
+                    <input type="number" id="yearMax" placeholder="2024" min="1900" max="9999">
+                </div>
+
+                <div class="filter-group">
+                    <label for="priceMin">Preço Mínimo</label>
+                    <input type="number" id="priceMin" placeholder="50000" min="0" step="1000">
+                </div>
+
+                <div class="filter-group">
+                    <label for="priceMax">Preço Máximo</label>
+                    <input type="number" id="priceMax" placeholder="200000" min="0" step="1000">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchInput">Busca Geral</label>
+                    <input type="text" id="searchInput" placeholder="Digite para buscar...">
+                </div>
+            </div>
+
+            <div class="search-actions">
+                <button class="btn btn-primary" id="searchBtn">🔍 Buscar Carros</button>
+                <button class="btn btn-secondary" id="clearBtn">🗑️ Limpar Filtros</button>
+                <button class="btn btn-secondary" id="loadOptionsBtn">🔄 Carregar Opções</button>
+            </div>
+        </div>
+
+        <div class="results">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">Nenhum resultado</div>
+                <div class="pagination" id="pagination" style="display: none;">
+                    <button id="prevBtn" disabled>← Anterior</button>
+                    <span id="pageInfo">Página 1 de 1</span>
+                    <button id="nextBtn" disabled>Próxima →</button>
+                </div>
+            </div>
+
+            <div id="resultsContainer">
+                <div class="loading">Conecte-se ao WebSocket para começar a buscar carros</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class MCPCarClient {
+            constructor(url) {
+                this.url = url;
+                this.ws = null;
+                this.requestId = 0;
+                this.currentPage = 1;
+                this.pageSize = 20;
+                this.totalPages = 1;
+                this.isConnected = false;
+            }
+
+    async connect() {
+        return new Promise((resolve, reject) => {
+            console.log('Tentando conectar em:', this.url);
+            console.log('Tipo da URL:', typeof this.url);
+            console.log('URL length:', this.url ? this.url.length : 'undefined');
+
+            try {
+                this.ws = new WebSocket(this.url, 'MCP-V1');
+
+                        this.ws.onopen = () => {
+                            console.log('Conectado ao MCP WebSocket');
+                            this.isConnected = true;
+                            this.updateStatus(true);
+                            resolve();
+                        };
+
+                        this.ws.onmessage = (event) => {
+                            const data = JSON.parse(event.data);
+                            this.handleMessage(data);
+                        };
+
+                        this.ws.onerror = (error) => {
+                            console.error('Erro WebSocket:', error);
+                            this.isConnected = false;
+                            this.updateStatus(false);
+                            reject(error);
+                        };
+
+                        this.ws.onclose = () => {
+                            console.log('Desconectado do WebSocket');
+                            this.isConnected = false;
+                            this.updateStatus(false);
+                        };
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+
+            handleMessage(data) {
+                switch(data.type) {
+                    case 'mcp_welcome':
+                        console.log('Bem-vindo ao MCP:', data.message);
+                        this.loadFilterOptions();
+                        break;
+                    case 'mcp_response':
+                        this.handleResponse(data);
+                        break;
+                    case 'mcp_error':
+                        console.error('Erro MCP:', data.error);
+                        this.showError(data.error);
+                        break;
+                }
+            }
+
+            handleResponse(data) {
+                console.log('Resposta MCP recebida:', data);
+
+                // Verificar se há promise pendente para este request_id
+                if (data.request_id && this.pendingPromises && this.pendingPromises[data.request_id]) {
+                    console.log('Resolvendo promise para request_id:', data.request_id);
+                    const promise = this.pendingPromises[data.request_id];
+                    delete this.pendingPromises[data.request_id];
+
+                    if (data.success !== false) {
+                        console.log('Promise resolvida com sucesso');
+                        promise.resolve(data);
+                    } else {
+                        console.log('Promise rejeitada com erro:', data.error);
+                        promise.reject(new Error(data.error || 'Erro na requisição'));
+                    }
+                    return;
+                }
+
+                if (data.data && data.data.results) {
+                    // Resposta de busca de carros
+                    this.setButtonLoading('searchBtn', false);
+                    this.setButtonLoading('clearBtn', false);
+                    this.displayResults(data.data);
+                } else if (data.data && data.data.brands) {
+                    console.log('Processando marcas...');
+                    this.populateSelect('brandSelect', data.data.brands);
+                } else if (data.data && data.data.colors) {
+                    console.log('Processando cores...');
+                    this.populateSelect('colorSelect', data.data.colors);
+                } else if (data.data && data.data.engines) {
+                    console.log('Processando motores...');
+                    this.populateSelect('engineSelect', data.data.engines);
+                } else if (data.data && data.data.fuel_types) {
+                    console.log('Processando opções de filtros...');
+                    this.populateFilterOptions(data.data);
+                } else {
+                    console.log('Resposta não reconhecida:', data);
+                    // Remover loading de todos os botões para respostas não reconhecidas
+                    this.setButtonLoading('searchBtn', false);
+                    this.setButtonLoading('clearBtn', false);
+                    this.setButtonLoading('loadOptionsBtn', false);
+                }
+            }
+
+
+            sendRequest(action, data = {}) {
+                if (!this.isConnected) {
+                    this.showError('Não conectado ao WebSocket');
+                    return;
+                }
+
+                const request = {
+                    type: 'mcp_request',
+                    request_id: `req_${++this.requestId}`,
+                    data: {
+                        action: action,
+                        ...data
+                    }
+                };
+
+                this.ws.send(JSON.stringify(request));
+            }
+
+            sendRequestPromise(action, data = {}) {
+                return new Promise((resolve, reject) => {
+                    if (!this.isConnected) {
+                        reject(new Error('Não conectado ao WebSocket'));
+                        return;
+                    }
+
+                    const requestId = `req_${++this.requestId}`;
+                    const request = {
+                        type: 'mcp_request',
+                        request_id: requestId,
+                        data: {
+                            action: action,
+                            ...data
+                        }
+                    };
+
+                    console.log('Enviando requisição MCP (Promise):', request);
+
+                    // Armazenar resolvers para este requestId
+                    this.pendingPromises = this.pendingPromises || {};
+                    this.pendingPromises[requestId] = { resolve, reject };
+
+                    this.ws.send(JSON.stringify(request));
+
+                    // Timeout para evitar promises pendentes indefinidamente
+                    setTimeout(() => {
+                        if (this.pendingPromises && this.pendingPromises[requestId]) {
+                            delete this.pendingPromises[requestId];
+                            reject(new Error(`Timeout na requisição ${action}`));
+                        }
+                    }, 10000); // 10 segundos de timeout
+                });
+            }
+
+            searchCars(filters = {}, pagination = {}, resetPagination = true) {
+                // Mostrar loading
+                this.showLoading('Buscando carros...');
+                this.setButtonLoading('searchBtn', true);
+                this.setButtonLoading('clearBtn', true);
+
+                // Se deve resetar paginação (nova busca com filtros), resetar para página 1
+                if (resetPagination && Object.keys(pagination).length === 0) {
+                    this.currentPage = 1;
+                    this.pageSize = 20;
+                }
+
+                this.sendRequest('search_cars', {
+                    filters: filters,
+                    pagination: {
+                        page: this.currentPage,
+                        page_size: this.pageSize,
+                        ...pagination
+                    }
+                });
+            }
+
+            async loadFilterOptions() {
+                // Mostrar loading
+                this.showLoading('Carregando opções de filtros...');
+                this.setButtonLoading('loadOptionsBtn', true);
+
+                try {
+                    console.log('Iniciando carregamento de opções de filtros...');
+
+                    // Fazer todas as requisições em paralelo e aguardar todas completarem
+                    const responses = await Promise.all([
+                        this.sendRequestPromise('get_brands'),
+                        this.sendRequestPromise('get_colors'),
+                        this.sendRequestPromise('get_engines'),
+                        this.sendRequestPromise('get_filters_options')
+                    ]);
+
+                    console.log('Todas as requisições de filtros completaram:', responses.length);
+
+                    // Processar cada resposta
+                    responses.forEach((response, index) => {
+                        console.log(`Processando resposta ${index + 1}:`, response);
+                        if (response.data) {
+                            if (response.data.brands) {
+                                console.log('Processando marcas...');
+                                this.populateSelect('brandSelect', response.data.brands);
+                            } else if (response.data.colors) {
+                                console.log('Processando cores...');
+                                this.populateSelect('colorSelect', response.data.colors);
+                            } else if (response.data.engines) {
+                                console.log('Processando motores...');
+                                this.populateSelect('engineSelect', response.data.engines);
+                            } else if (response.data.fuel_types) {
+                                console.log('Processando opções de filtros...');
+                                this.populateFilterOptions(response.data);
+                            }
+                        }
+                    });
+
+                    console.log('Removendo loading de filtros...');
+                    // Remover loading apenas quando todas as requisições completarem
+                    this.setButtonLoading('loadOptionsBtn', false);
+
+                    // Limpar o loading do container
+                    const container = document.getElementById('resultsContainer');
+                    container.innerHTML = '<div class="info">✅ Opções de filtros carregadas com sucesso!</div>';
+
+                } catch (error) {
+                    console.error('Erro ao carregar opções de filtros:', error);
+                    this.setButtonLoading('loadOptionsBtn', false);
+                    this.showError('Erro ao carregar opções de filtros');
+                }
+            }
+
+            updateStatus(connected) {
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+
+                if (connected) {
+                    statusDot.classList.add('connected');
+                    statusText.textContent = 'Conectado';
+                } else {
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'Desconectado';
+                }
+            }
+
+            populateSelect(selectId, items) {
+                const select = document.getElementById(selectId);
+                const currentValue = select.value;
+
+                // Limpar opções existentes (exceto a primeira)
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
+
+                items.forEach(item => {
+                    const option = document.createElement('option');
+
+                    // Verificar se é string Python ou objeto JavaScript
+                    if (typeof item === 'string') {
+                        // Parse da string Python: "id=UUID('...') name='Acura' count=6"
+                        const nameMatch = item.match(/name='([^']+)'/);
+                        const countMatch = item.match(/count=(\d+)/);
+                        const idMatch = item.match(/id=UUID\('([^']+)'\)/);
+
+                        if (nameMatch) {
+                            option.value = idMatch ? idMatch[1] : nameMatch[1];
+                            option.textContent = `${nameMatch[1]} (${countMatch ? countMatch[1] : 0})`;
+                        } else {
+                            // Fallback para string simples
+                            option.value = item;
+                            option.textContent = item;
+                        }
+                    } else {
+                        // Objeto JavaScript normal
+                        option.value = item.id || item.name;
+                        option.textContent = `${item.name} (${item.count || 0})`;
+                    }
+
+                    select.appendChild(option);
+                });
+
+                // Restaurar valor selecionado se ainda existir
+                if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                    select.value = currentValue;
+                }
+            }
+
+            parsePythonString(pythonString) {
+                try {
+                    // Converter string Python para objeto JavaScript
+                    // Exemplo: "fuel_types=['diesel', 'electric']" -> {fuel_types: ['diesel', 'electric']}
+
+                    // Remover espaços extras
+                    let cleanString = pythonString.trim();
+
+                    // Converter arrays Python para JSON
+                    cleanString = cleanString.replace(/'/g, '"'); // ' -> "
+                    cleanString = cleanString.replace(/\[/g, '['); // [ -> [
+                    cleanString = cleanString.replace(/\]/g, ']'); // ] -> ]
+
+                    // Converter dicionários Python para JSON
+                    cleanString = cleanString.replace(/\{/g, '{'); // { -> {
+                    cleanString = cleanString.replace(/\}/g, '}'); // } -> }
+
+                    // Converter True/False para true/false
+                    cleanString = cleanString.replace(/True/g, 'true');
+                    cleanString = cleanString.replace(/False/g, 'false');
+                    cleanString = cleanString.replace(/None/g, 'null');
+
+                    // Criar objeto JavaScript manualmente
+                    const result = {};
+
+                    // Extrair fuel_types
+                    const fuelMatch = cleanString.match(/fuel_types=\[([^\]]+)\]/);
+                    if (fuelMatch) {
+                        result.fuel_types = JSON.parse('[' + fuelMatch[1] + ']');
+                    }
+
+                    // Extrair transmissions
+                    const transMatch = cleanString.match(/transmissions=\[([^\]]+)\]/);
+                    if (transMatch) {
+                        result.transmissions = JSON.parse('[' + transMatch[1] + ']');
+                    }
+
+                    // Extrair year_range
+                    const yearMatch = cleanString.match(/year_range=\{([^}]+)\}/);
+                    if (yearMatch) {
+                        const yearStr = '{' + yearMatch[1] + '}';
+                        result.year_range = JSON.parse(yearStr);
+                    }
+
+                    // Extrair price_range
+                    const priceMatch = cleanString.match(/price_range=\{([^}]+)\}/);
+                    if (priceMatch) {
+                        const priceStr = '{' + priceMatch[1] + '}';
+                        result.price_range = JSON.parse(priceStr);
+                    }
+
+                    // Extrair mileage_range
+                    const mileageMatch = cleanString.match(/mileage_range=\{([^}]+)\}/);
+                    if (mileageMatch) {
+                        const mileageStr = '{' + mileageMatch[1] + '}';
+                        result.mileage_range = JSON.parse(mileageStr);
+                    }
+
+                    // Extrair doors_range
+                    const doorsMatch = cleanString.match(/doors_range=\{([^}]+)\}/);
+                    if (doorsMatch) {
+                        const doorsStr = '{' + doorsMatch[1] + '}';
+                        result.doors_range = JSON.parse(doorsStr);
+                    }
+
+                    return result;
+                } catch (e) {
+                    console.error('Erro ao fazer parse da string Python:', e);
+                    return {};
+                }
+            }
+
+            populateFilterOptions(options) {
+                console.log('Dados recebidos para populateFilterOptions:', options);
+
+                // Verificar se options existe e tem a estrutura esperada
+                if (!options) {
+                    console.error('Options não definido');
+                    return;
+                }
+
+                // Popular tipos de combustível
+                const fuelSelect = document.getElementById('fuelTypeSelect');
+                if (fuelSelect) {
+                    // Limpar opções existentes (exceto a primeira que é "Selecione...")
+                    while (fuelSelect.children.length > 1) {
+                        fuelSelect.removeChild(fuelSelect.lastChild);
+                    }
+
+                    if (options["fuel_types"] && Array.isArray(options["fuel_types"])) {
+                        options["fuel_types"].forEach(fuel => {
+                            const option = document.createElement('option');
+                            option.value = fuel;
+                            option.textContent = fuel;
+                            fuelSelect.appendChild(option);
+                        });
+                        console.log('Combustíveis carregados:', options["fuel_types"]);
+                    } else {
+                        console.warn('fuel_types não encontrado ou não é array:', options["fuel_types"]);
+                    }
+                } else {
+                    console.error('Elemento fuelTypeSelect não encontrado');
+                }
+
+                // Popular tipos de transmissão
+                const transmissionSelect = document.getElementById('transmissionSelect');
+                if (transmissionSelect) {
+                    // Limpar opções existentes (exceto a primeira que é "Selecione...")
+                    while (transmissionSelect.children.length > 1) {
+                        transmissionSelect.removeChild(transmissionSelect.lastChild);
+                    }
+
+                    if (options["transmissions"] && Array.isArray(options["transmissions"])) {
+                        options["transmissions"].forEach(transmission => {
+                            const option = document.createElement('option');
+                            option.value = transmission;
+                            option.textContent = transmission;
+                            transmissionSelect.appendChild(option);
+                        });
+                        console.log('Transmissões carregadas:', options["transmissions"]);
+                    } else {
+                        console.warn('transmissions não encontrado ou não é array:', options["transmissions"]);
+                    }
+                } else {
+                    console.error('Elemento transmissionSelect não encontrado');
+                }
+
+                // Definir valores padrão para anos
+                if (options["year_range"]) {
+                    document.getElementById('yearMin').placeholder = options["year_range"].min_manufacture || 2020;
+                    document.getElementById('yearMax').placeholder = options["year_range"].max_manufacture || 2024;
+                } else {
+                    console.warn('year_range não encontrado');
+                }
+
+                // Definir valores padrão para preços
+                if (options["price_range"]) {
+                    document.getElementById('priceMin').placeholder = options["price_range"].min || 50000;
+                    document.getElementById('priceMax').placeholder = options["price_range"].max || 200000;
+                } else {
+                    console.warn('price_range não encontrado');
+                }
+            }
+
+            displayResults(data) {
+                const container = document.getElementById('resultsContainer');
+                const countElement = document.getElementById('resultsCount');
+                const paginationElement = document.getElementById('pagination');
+
+                this.totalPages = data.total_pages || 1;
+                this.currentPage = data.page || 1;
+
+                countElement.textContent = `${data.total || 0} carros encontrados`;
+
+                if (data.results && data.results.length > 0) {
+                    const carsHtml = data.results.map(car => `
+                        <div class="car-card">
+                            <div class="car-title">${car.car_name?.name || 'N/A'}</div>
+                            <div class="car-brand">${car.car_name?.brand?.name || 'N/A'}</div>
+                            <div class="car-details">
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Modelo</div>
+                                    <div class="car-detail-value">${car.car_model?.name || 'N/A'}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Ano</div>
+                                    <div class="car-detail-value">${car.year_manufacture}/${car.year_model}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Motor</div>
+                                    <div class="car-detail-value">${car.engine?.name || 'N/A'}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Cor</div>
+                                    <div class="car-detail-value">${car.color?.name || 'N/A'}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Combustível</div>
+                                    <div class="car-detail-value">${car.fuel_type_display || car.fuel_type || 'N/A'}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Transmissão</div>
+                                    <div class="car-detail-value">${car.transmission_display || car.transmission || 'N/A'}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Portas</div>
+                                    <div class="car-detail-value">${car.doors || 'N/A'}</div>
+                                </div>
+                                <div class="car-detail">
+                                    <div class="car-detail-label">Quilometragem</div>
+                                    <div class="car-detail-value">${car.mileage ? car.mileage.toLocaleString() : 'N/A'} km</div>
+                                </div>
+                            </div>
+                            <div class="car-price">R$ ${car.price ? car.price.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : 'N/A'}</div>
+                        </div>
+                    `).join('');
+
+                    container.innerHTML = `<div class="cars-grid">${carsHtml}</div>`;
+
+                    // Atualizar paginação
+                    this.updatePagination();
+                    paginationElement.style.display = 'flex';
+                } else {
+                    container.innerHTML = '<div class="loading">Nenhum carro encontrado com os filtros aplicados</div>';
+                    paginationElement.style.display = 'none';
+                }
+            }
+
+            updatePagination() {
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                const pageInfo = document.getElementById('pageInfo');
+
+                prevBtn.disabled = this.currentPage <= 1;
+                nextBtn.disabled = this.currentPage >= this.totalPages;
+                pageInfo.textContent = `Página ${this.currentPage} de ${this.totalPages}`;
+            }
+
+            showError(message) {
+                // Remover loading de todos os botões
+                this.setButtonLoading('searchBtn', false);
+                this.setButtonLoading('clearBtn', false);
+                this.setButtonLoading('loadOptionsBtn', false);
+
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = `<div class="error">❌ Erro: ${message}</div>`;
+            }
+
+            getFilters() {
+                return {
+                    brand_id: document.getElementById('brandSelect').value || undefined,
+                    color_id: document.getElementById('colorSelect').value || undefined,
+                    engine_id: document.getElementById('engineSelect').value || undefined,
+                    fuel_type: document.getElementById('fuelTypeSelect').value || undefined,
+                    transmission: document.getElementById('transmissionSelect').value || undefined,
+                    year_manufacture_min: document.getElementById('yearMin').value ? parseInt(document.getElementById('yearMin').value) : undefined,
+                    year_manufacture_max: document.getElementById('yearMax').value ? parseInt(document.getElementById('yearMax').value) : undefined,
+                    price_min: document.getElementById('priceMin').value ? parseFloat(document.getElementById('priceMin').value) : undefined,
+                    price_max: document.getElementById('priceMax').value ? parseFloat(document.getElementById('priceMax').value) : undefined,
+                    search: document.getElementById('searchInput').value || undefined
+                };
+            }
+
+            clearFilters() {
+                // Limpar todos os campos de filtro
+                document.getElementById('brandSelect').value = '';
+                document.getElementById('colorSelect').value = '';
+                document.getElementById('engineSelect').value = '';
+                document.getElementById('fuelTypeSelect').value = '';
+                document.getElementById('transmissionSelect').value = '';
+                document.getElementById('yearMin').value = '';
+                document.getElementById('yearMax').value = '';
+                document.getElementById('priceMin').value = '';
+                document.getElementById('priceMax').value = '';
+                document.getElementById('searchInput').value = '';
+
+                // Fazer uma nova busca com filtros vazios
+                this.searchCars({});
+            }
+
+            setButtonLoading(buttonId, loading = true) {
+                const button = document.getElementById(buttonId);
+                if (!button) return;
+
+                if (loading) {
+                    button.classList.add('btn-loading');
+                    button.disabled = true;
+                } else {
+                    button.classList.remove('btn-loading');
+                    button.disabled = false;
+                }
+            }
+
+            showLoading(message = 'Carregando...') {
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = `<div class="loading"><div class="spinner"></div>${message}</div>`;
+            }
+        }
+
+        // Inicializar aplicação
+        function initializeMCP() {
+            const websocketUrl = '{{ websocket_url }}';
+            console.log('WebSocket URL:', websocketUrl);
+            console.log('WebSocket URL length:', websocketUrl.length);
+            console.log('WebSocket URL type:', typeof websocketUrl);
+
+            // Verificar se a URL está vazia ou malformada
+            if (!websocketUrl || websocketUrl.trim() === '' || websocketUrl.includes('{{') || websocketUrl.includes('}}')) {
+                console.error('WebSocket URL não foi renderizada corretamente!');
+                console.error('URL recebida:', websocketUrl);
+                document.getElementById('resultsContainer').innerHTML =
+                    '<div class="error">❌ Erro: WebSocket URL não configurada corretamente</div>';
+                return;
+            }
+
+            const client = new MCPCarClient(websocketUrl);
+            return client;
+        }
+
+        const client = initializeMCP();
+
+        // Event listeners
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            if (!client) {
+                console.error('Cliente MCP não foi inicializado corretamente');
+                return;
+            }
+            const filters = client.getFilters();
+            // Remover valores vazios
+            Object.keys(filters).forEach(key => {
+                if (filters[key] === undefined || filters[key] === '') {
+                    delete filters[key];
+                }
+            });
+            client.searchCars(filters);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (!client) {
+                console.error('Cliente MCP não foi inicializado corretamente');
+                return;
+            }
+            client.clearFilters();
+        });
+
+        document.getElementById('loadOptionsBtn').addEventListener('click', () => {
+            if (!client) {
+                console.error('Cliente MCP não foi inicializado corretamente');
+                return;
+            }
+            client.loadFilterOptions();
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (!client) {
+                console.error('Cliente MCP não foi inicializado corretamente');
+                return;
+            }
+            if (client.currentPage > 1) {
+                client.currentPage--;
+                const filters = client.getFilters();
+                Object.keys(filters).forEach(key => {
+                    if (filters[key] === undefined || filters[key] === '') {
+                        delete filters[key];
+                    }
+                });
+                client.searchCars(filters, {}, false); // Não resetar paginação
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (!client) {
+                console.error('Cliente MCP não foi inicializado corretamente');
+                return;
+            }
+            if (client.currentPage < client.totalPages) {
+                client.currentPage++;
+                const filters = client.getFilters();
+                Object.keys(filters).forEach(key => {
+                    if (filters[key] === undefined || filters[key] === '') {
+                        delete filters[key];
+                    }
+                });
+                client.searchCars(filters, {}, false); // Não resetar paginação
+            }
+        });
+
+        // Busca em tempo real no campo de busca
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            if (!client) {
+                console.error('Cliente MCP não foi inicializado corretamente');
+                return;
+            }
+            if (e.target.value.length >= 3) {
+                const filters = client.getFilters();
+                Object.keys(filters).forEach(key => {
+                    if (filters[key] === undefined || filters[key] === '') {
+                        delete filters[key];
+                    }
+                });
+                client.searchCars(filters);
+            }
+        });
+
+        // Conectar ao WebSocket
+        if (client) {
+            client.connect().catch(error => {
+                console.error('Erro ao conectar:', error);
+                document.getElementById('resultsContainer').innerHTML =
+                    '<div class="error">❌ Erro ao conectar ao WebSocket. Verifique se o servidor está rodando.</div>';
+            });
+        }
+    </script>
+</body>
+</html>
