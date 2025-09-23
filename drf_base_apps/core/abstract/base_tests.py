@@ -170,7 +170,7 @@ class BaseTests(BasePrints):
 
     """
 
-    faker = Faker()
+    faker = Faker("pt_BR")
     base_path = API_VERSION
 
     status_expected = {"GET": 200, "POST": 201, "PUT": 200}

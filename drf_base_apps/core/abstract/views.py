@@ -30,6 +30,7 @@ from django.core import exceptions as django_exceptions
 from django.core.cache import cache
 from django.core.cache.utils import make_template_fragment_key
 from django.db import models, transaction
+from django.db.models import ProtectedError
 from django.http import Http404, JsonResponse
 from django.template.response import ContentNotRenderedError
 from django.urls import resolve
@@ -1384,7 +1385,12 @@ class AbstractViewApi(generics.GenericAPIView, CustomOrderingFilter):
         """Abstract method for default method DELETE. Override method in class for custom operation."""
         obj_id = kwargs.get("id")
         obj = get_object_or_404(self.get_model(), id=obj_id)
-        obj.delete()
+        try:
+            obj.delete()
+        except ProtectedError as e:
+            raise ValidationAdapterError(
+                _("Não é possível excluir a instância do modelo porque ela é referenciada por outros objetos.")
+            ) from e
         return JsonResponse(
             {"data": _(f'{self.get_model_name().replace("_", " ").title()} deleted')}, status=status.HTTP_200_OK
         )

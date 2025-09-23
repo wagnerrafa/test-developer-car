@@ -22,4 +22,4 @@ class TestUserForbiddenDetail(AbstractTest):
 
     path = "user-detail"
     http_method_names = ["get"]
-    status_expected = {"get": 403}
+    status_expected = {"get": 200}

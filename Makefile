@@ -36,6 +36,9 @@ shell:  ## Abre o shell interativo com contexto do Django
 	poetry run python manage.py shell
 
 test:  ## Executa os testes da aplicação
+	poetry run python manage.py test --keepdb
+
+test-save:  ## Executa os testes da aplicação
 	poetry run python manage.py test
 
 lint:  ## Executa linting com Ruff
@@ -58,6 +61,19 @@ collectstatic:  ## Coleta arquivos estáticos (para produção)
 
 creategroups:  ## Criar os grupos de acordo com as permissões de CRUD para cada app
 	poetry run python manage.py create_groups
+
+# Comandos para popular dados de carros
+populate-cars:  ## Popula o banco com dados fictícios de carros (uso: make populate-cars COUNT=100)
+	poetry run python manage.py populate_cars --count=$(or $(COUNT),100)
+
+populate-cars-clear:  ## Limpa dados existentes e popula com carros fictícios (uso: make populate-cars-clear COUNT=500)
+	poetry run python manage.py populate_cars --count=$(or $(COUNT),500) --clear
+
+populate-cars-large:  ## Popula com grande quantidade de carros (1000+)
+	poetry run python manage.py populate_cars --count=1000 --batch-size=500
+
+populate-cars-huge:  ## Popula com quantidade massiva de carros (5000+)
+	poetry run python manage.py populate_cars --count=5000 --batch-size=1000 --clear
 
 check:  ## Checa o projeto com scan e lint
 	make lint
