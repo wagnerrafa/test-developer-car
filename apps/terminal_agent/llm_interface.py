@@ -157,7 +157,7 @@ class LLMInterface(ABC):
 
         result_text = f"🚗 Encontrei {len(cars)} carro(s):\n\n"
 
-        for i, car in enumerate(cars[:5], 1):
+        for i, car in enumerate(cars, 1):
             try:
                 brand_name = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
                 car_name = car.get("car_name", {}).get("name", "N/A")
