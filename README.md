@@ -101,6 +101,192 @@ A página de demonstração inclui:
 - Paginação e ordenação
 - Exemplos de uso do protocolo MCP
 
+### Agente Virtual de Busca de Carros
+
+O projeto inclui um **Agente Virtual Inteligente** que permite buscar carros através de conversas naturais no terminal, utilizando LLM (Large Language Model) para entender preferências e gerar filtros de busca automaticamente.
+
+#### Funcionalidades do Agente
+
+- **Conversa Natural**: Interaja com o agente usando linguagem natural
+- **Extração Inteligente**: O agente extrai preferências de carros automaticamente
+- **Filtros Automáticos**: Converte preferências em filtros de busca MCP
+- **Múltiplas LLMs**: Suporte a Ollama e SimpleLLM
+- **Busca em Tempo Real**: Integração direta com o sistema MCP WebSocket
+- **Interface Amigável**: Interface rica no terminal com progresso e feedback
+
+#### Como Usar o Agente
+
+##### 1. Executar o Agente
+
+```bash
+# Usar com SimpleLLM (padrão)
+python manage.py run_car_agent
+
+# Usar com Ollama (se disponível)
+python manage.py run_car_agent --llm-provider=ollama
+
+# Usar com Ollama e modelo específico
+python manage.py run_car_agent --llm-provider=ollama --llm-model=llama3.1:8b
+```
+
+##### 2. Exemplos de Conversas
+
+**Busca por Marca e Ano:**
+```
+🤖 Agente Virtual: Olá! Sou seu assistente para busca de carros. Como posso ajudar?
+
+👤 Você: Quero um Audi 2016
+
+🤖 Agente Virtual: ✅ Preferências extraídas com sucesso!
+- Marca: Audi
+- Ano: 2016
+
+🔍 Buscando carros no banco de dados...
+✅ Encontrei 3 carros que atendem aos seus critérios!
+```
+
+**Busca por Faixa de Preço:**
+```
+👤 Você: Preciso de um carro entre 30 e 50 mil reais
+
+🤖 Agente Virtual: ✅ Preferências extraídas com sucesso!
+- Faixa de preço: R$ 30.000 - R$ 50.000
+
+🔍 Buscando carros no banco de dados...
+✅ Encontrei 15 carros na sua faixa de preço!
+```
+
+**Busca por Combustível e Transmissão:**
+```
+👤 Você: Quero um carro flex automático
+
+🤖 Agente Virtual: ✅ Preferências extraídas com sucesso!
+- Combustível: Flex
+- Transmissão: Automática
+
+🔍 Buscando carros no banco de dados...
+✅ Encontrei 8 carros flex automáticos!
+```
+
+##### 3. Preferências Suportadas
+
+O agente entende as seguintes preferências:
+
+- **Marca**: Toyota, Honda, Ford, Audi, BMW, etc.
+- **Modelo**: Corolla, Civic, Focus, A4, X5, etc.
+- **Ano**: 2015, 2016, 2020, "recente", "antigo"
+- **Preço**: "econômico", "médio", "luxo", faixas específicas
+- **Combustível**: Gasolina, Etanol, Flex, Diesel, Elétrico, Híbrido
+- **Transmissão**: Manual, Automática, CVT, Semi-automática
+- **Cor**: Branco, Preto, Prata, Azul, Vermelho, etc.
+- **Portas**: 2, 4, 5 portas
+- **Quilometragem**: "baixa", "média", "alta", valores específicos
+
+##### 4. Configuração de LLM
+
+O agente suporta diferentes provedores de LLM:
+
+**SimpleLLM (Padrão):**
+- Rápido e leve
+- Ideal para desenvolvimento e testes
+- Não requer configuração adicional
+
+**Ollama:**
+- Mais inteligente e preciso
+- Requer instalação do Ollama
+- Suporte a modelos como Llama, Mistral, etc.
+
+**Configurar Ollama:**
+```bash
+# Instalar Ollama (se não estiver instalado)
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Baixar modelo (exemplo: Llama 3.1 8B)
+ollama pull llama3.1:8b
+
+# Executar agente com Ollama
+python manage.py run_car_agent --llm-provider=ollama --llm-model=llama3.1:8b
+```
+
+##### 5. Comandos do Agente
+
+Durante a conversa, você pode usar:
+
+- **"sair"** ou **"quit"**: Encerrar o agente
+- **"ajuda"** ou **"help"**: Mostrar ajuda
+- **"limpar"** ou **"clear"**: Limpar histórico da conversa
+- **"buscar"**: Forçar nova busca com preferências atuais
+
+##### 6. Exemplo Completo de Sessão
+
+```
+🤖 Agente Virtual: Olá! Sou seu assistente para busca de carros. Como posso ajudar?
+
+👤 Você: Preciso de um carro para família
+
+🤖 Agente Virtual: Entendi! Para uma família, que tipo de carro você prefere? 
+- Qual marca você tem em mente?
+- Que faixa de preço seria ideal?
+- Prefere automático ou manual?
+
+👤 Você: Toyota automático até 80 mil
+
+🤖 Agente Virtual: ✅ Preferências extraídas com sucesso!
+- Marca: Toyota
+- Transmissão: Automática
+- Preço máximo: R$ 80.000
+
+🔍 Buscando carros no banco de dados...
+✅ Encontrei 12 carros Toyota automáticos até R$ 80.000!
+
+📋 Resultados encontrados:
+1. Toyota Corolla 2022 - R$ 75.000
+2. Toyota Camry 2021 - R$ 78.000
+3. Toyota RAV4 2020 - R$ 72.000
+...
+
+👤 Você: Quero ver mais detalhes do Corolla
+
+🤖 Agente Virtual: Aqui estão os detalhes do Toyota Corolla 2022:
+- Preço: R$ 75.000
+- Ano: 2022
+- Combustível: Flex
+- Transmissão: Automática
+- Cor: Prata
+- Quilometragem: 15.000 km
+- Motor: 2.0L 16V
+- Portas: 4
+
+👤 Você: Obrigado!
+
+🤖 Agente Virtual: De nada! Foi um prazer ajudar. Até a próxima! 👋
+```
+
+##### 7. Troubleshooting
+
+**Problema: "LLM não disponível"**
+```bash
+# Verificar se Ollama está rodando
+ollama list
+
+# Iniciar Ollama se necessário
+ollama serve
+```
+
+**Problema: "Erro na busca"**
+```bash
+# Verificar se o servidor está rodando
+python manage.py runserver
+
+# Verificar logs
+tail -f log/2025-09-23_info.log
+```
+
+**Problema: "Nenhum carro encontrado"**
+- Verifique se há dados no banco: `python manage.py populate_cars`
+- Tente critérios mais amplos
+- Use "ajuda" para ver preferências suportadas
+
 ### Desenvolvimento de Aplicações
 
 Para começar a desenvolver a sua aplicação, você pode seguir os seguintes passos:

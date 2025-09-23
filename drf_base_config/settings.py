@@ -399,7 +399,7 @@ if ENABLE_LOGGING_FILE:
         INSTALLED_APPS.append("log_viewer")
         INSTALLED_APPS.append("drf_base_apps.custom_log_viewer")
 
-    path_file_logs = os.path.join(BASE_DIR, "log")
+    path_file_logs = os.path.join(BASE_DIR_MAIN_APP, "log")
 
     file_handlers = ["critical", "info", "error", "warning"]
     has_file_handlers = any(handler in LOGGING_FILE_HANDLERS for handler in file_handlers)

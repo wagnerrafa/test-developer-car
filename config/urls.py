@@ -23,7 +23,7 @@ from django.urls import include, path
 
 from config.settings import MEDIA_ROOT, MEDIA_URL
 from drf_base_config import urls as base_urls
-from drf_base_config.settings import APP_NAME, BASE_API_URL, CURRENT_VERSION
+from drf_base_config.settings import APP_NAME, BASE_API_URL, BASE_URL, CURRENT_VERSION
 
 
 def mcp_demo_view(request):
@@ -38,7 +38,7 @@ def mcp_demo_view(request):
 urlpatterns = [
     path("", include(base_urls)),
     path(f"{BASE_API_URL}cars/", include("apps.cars.urls")),
-    path("mcp-demo/", mcp_demo_view, name="mcp_demo"),
+    path(f"{BASE_URL}mcp-demo/", mcp_demo_view, name="mcp_demo"),
 ]
 
 urlpatterns += static("/" + MEDIA_URL, document_root=MEDIA_ROOT)

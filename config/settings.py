@@ -25,7 +25,7 @@ extend_settings(settings_path)
 from drf_base_config.settings import *
 
 # Add project-specific apps to INSTALLED_APPS
-INSTALLED_APPS += ["apps.cars"]
+INSTALLED_APPS += ["apps.cars", "apps.terminal_agent"]
 
 ROOT_URLCONF = "config.urls"
 
