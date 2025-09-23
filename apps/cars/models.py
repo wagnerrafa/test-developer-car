@@ -208,4 +208,4 @@ class Car(AbstractDescription):
 
     def __str__(self):
         """Return string representation of the car."""
-        return f"{self.car_name} ({self.year})"
+        return f"{self.car_name}"
