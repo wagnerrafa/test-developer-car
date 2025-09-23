@@ -106,7 +106,6 @@ class OllamaClient(LLMInterface, LLMBase):
             Resposta gerada pelo modelo
 
         """
-        print("teste")
         try:
             # Construir prompt completo
             full_prompt = prompt
