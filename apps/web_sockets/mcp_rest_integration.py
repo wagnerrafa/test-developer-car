@@ -121,10 +121,7 @@ class MCPRestIntegration:
             view.setup(request)
 
             # Executar a view com kwargs se fornecidos
-            if kwargs:
-                response = getattr(view, method_name)(request, **kwargs)
-            else:
-                response = getattr(view, method_name)(request)
+            response = getattr(view, method_name)(request, **kwargs) if kwargs else getattr(view, method_name)(request)
 
             # Converter resposta para dict
             if hasattr(response, "data"):
