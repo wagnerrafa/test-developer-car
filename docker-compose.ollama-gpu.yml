@@ -1,7 +1,7 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: base_tests_ollama
+    container_name: base_tests_ollama_gpu
     ports:
       - "11434:11434"
     volumes:
@@ -16,17 +16,23 @@ services:
       - OLLAMA_MAX_QUEUE=512
     restart: unless-stopped
     entrypoint: ["/init-ollama.sh"]
+    # Configurações para GPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 16G
+        reservations:
+          memory: 8G
     # Otimizações de performance
-    shm_size: 2gb
+    shm_size: 4gb
     ulimits:
       memlock: -1
       stack: 67108864
-    deploy:
-      resources:
-        limits:
-          memory: 8G
-        reservations:
-          memory: 4G
 
 volumes:
   ollama_data:

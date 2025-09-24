@@ -117,6 +117,8 @@ class MCPHandler:
             else:
                 serializer = MCPRequestSerializer(data=request_data)
 
+            logger.debug(f"MCP request: {request_data}")
+
             if not serializer.is_valid():
                 logger.error(f"Erro de validação: {serializer.errors}")
                 return create_mcp_error(
@@ -127,6 +129,8 @@ class MCPHandler:
 
             validated_data = serializer.validated_data
             request_id = validated_data.get("request_id")
+
+            logger.debug(f"MCP request validated_data: {validated_data}")
 
             # Roteamento baseado na ação
             handler_map = {

@@ -211,7 +211,7 @@ class Command(BaseCommand):
         goodbye_text.append("\n", style="white")
         goodbye_text.append("Espero ter ajudado você a encontrar o carro ideal! 🚗", style="white")
 
-        logger.info("👋 Agente Virtual finalizado")
+        self.console.print(Panel(goodbye_text, title="👋 Até logo!", border_style="green"))
 
     def _display_agent_response(self, response: str):
         """Exibe resposta do agente."""
@@ -221,7 +221,7 @@ class Command(BaseCommand):
         agent_text.append("\n\n", style="white")
         agent_text.append(response, style="white")
 
-        logger.info("Agente Virtual ativo")
+        self.console.print(Panel(agent_text, border_style="blue"))
 
     def _process_user_input(self, user_input: str) -> str:
         """Processa entrada do usuário e gera resposta."""
@@ -234,10 +234,31 @@ class Command(BaseCommand):
                 transient=True,
             ) as progress:
 
+                # Verificar se é uma solicitação de limpeza de filtros
+                if self.llm.is_clear_filters_request(user_input):
+                    self._clear_conversation_state()
+                    return "🔄 Filtros limpos! Agora posso te ajudar com uma nova busca. O que você está procurando?"
+
                 # Passo 1: Extrair preferências usando Ollama
                 task1 = progress.add_task("🤖 Analisando sua solicitação com IA...", total=None)
                 logger.info("Analisando sua solicitação com IA...")
-                preferences = self.llm.extract_car_preferences(user_input)
+                # Passar resultados anteriores para refinamento
+                previous_results = self.conversation_state.get("current_results", [])
+
+                # Verificar se é uma solicitação de refinamento
+                is_refinement = self.llm.is_refinement_request(user_input, previous_results)
+
+                if is_refinement and previous_results:
+                    # Para refinamento, manter preferências anteriores e adicionar novas
+                    preferences = self.llm.extract_car_preferences(user_input, previous_results)
+                    # Manter preferências anteriores que não foram alteradas
+                    for key, value in self.conversation_state["preferences"].items():
+                        if key not in preferences or preferences[key] is None:
+                            preferences[key] = value
+                else:
+                    # Busca normal
+                    preferences = self.llm.extract_car_preferences(user_input, previous_results)
+
                 progress.update(task1, description="✅ Preferências extraídas com sucesso!")
 
                 # Atualizar estado da conversa
@@ -306,6 +327,15 @@ class Command(BaseCommand):
             missing.append("ano")
 
         return missing
+
+    def _clear_conversation_state(self):
+        """Limpa o estado da conversa para começar uma nova busca."""
+        self.conversation_state = {
+            "preferences": {},
+            "search_history": [],
+            "current_results": [],
+        }
+        logger.info("Estado da conversa limpo - iniciando nova busca")
 
     def _search_cars(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Executa busca de carros via MCP."""

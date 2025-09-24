@@ -1,0 +1,5 @@
+---
+description: dont create script test if not solicited
+globs:
+alwaysApply: true
+---

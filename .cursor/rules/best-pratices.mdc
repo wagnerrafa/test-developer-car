@@ -1,0 +1,5 @@
+---
+description: always run make lint-fix e make format before gitadd
+globs:
+alwaysApply: true
+---

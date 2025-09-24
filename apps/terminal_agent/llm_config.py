@@ -18,6 +18,18 @@ LLM_CONFIGS = {
         "class": "OllamaClient",
         "enabled": True,
         "description": "Cliente Ollama para modelos locais",
+        "default_config": {"base_url": "http://localhost:11434", "model": "llama3.1:7b"},  # Modelo mais rápido
+    },
+    "ollama-fast": {
+        "class": "OllamaClient",
+        "enabled": True,
+        "description": "Cliente Ollama com modelo 7b para máxima velocidade",
+        "default_config": {"base_url": "http://localhost:11434", "model": "llama3.1:7b"},
+    },
+    "ollama-balanced": {
+        "class": "OllamaClient",
+        "enabled": True,
+        "description": "Cliente Ollama com modelo 8b para balance entre velocidade e qualidade",
         "default_config": {"base_url": "http://localhost:11434", "model": "llama3.1:8b"},
     },
 }

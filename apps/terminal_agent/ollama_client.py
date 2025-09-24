@@ -34,6 +34,24 @@ class OllamaClient(LLMInterface, LLMBase):
         self.model = model
         self.session = requests.Session()
 
+        # Configurações de performance para a sessão
+        self.session.headers.update({"Connection": "keep-alive", "Keep-Alive": "timeout=30, max=100"})
+
+        # Adapter com pool de conexões otimizado
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=0.1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+
+        adapter = HTTPAdapter(max_retries=retry_strategy, pool_connections=10, pool_maxsize=20, pool_block=False)
+
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+
     def is_available(self) -> bool:
         """
         Verifica se o servidor Ollama está disponível.
@@ -72,7 +90,7 @@ class OllamaClient(LLMInterface, LLMBase):
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 1000,
-        stream: bool = False,
+        stream: bool = True,  # Mudança: streaming por padrão para melhor UX
     ) -> str:
         """
         Gera resposta usando o modelo Ollama.
@@ -82,7 +100,7 @@ class OllamaClient(LLMInterface, LLMBase):
             system_prompt: Prompt do sistema (opcional)
             temperature: Temperatura para geração (0.0 a 1.0)
             max_tokens: Número máximo de tokens
-            stream: Se deve usar streaming
+            stream: Se deve usar streaming (recomendado para melhor performance)
 
         Returns:
             Resposta gerada pelo modelo
@@ -101,14 +119,18 @@ class OllamaClient(LLMInterface, LLMBase):
                 "options": {
                     "temperature": temperature,
                     "num_predict": max_tokens,
+                    "top_p": 0.9,  # Otimização: reduz diversidade desnecessária
+                    "top_k": 40,  # Otimização: limita vocabulário
+                    "repeat_penalty": 1.1,  # Evita repetições
+                    "stop": ["User:", "System:"],  # Removido \n\n para permitir quebras de linha
                 },
             }
 
             response = self.session.post(
                 f"{self.base_url}/api/generate",
                 json=payload,
-                timeout=120,  # Timeout reduzido para 120s
-                stream=False,  # Forçar não-streaming
+                timeout=60,  # Timeout otimizado
+                stream=stream,
             )
             response.raise_for_status()
 
@@ -119,7 +141,7 @@ class OllamaClient(LLMInterface, LLMBase):
                 return data.get("response", "")
 
         except requests.exceptions.Timeout as e:
-            logger.error(f"Timeout ao gerar resposta (120s): {e}")
+            logger.error(f"Timeout ao gerar resposta (60s): {e}")
             return "⏰ A resposta está demorando muito. Tente novamente ou simplifique sua busca."
         except requests.exceptions.ConnectionError as e:
             logger.error(f"Erro de conexão com Ollama: {e}")
@@ -143,7 +165,9 @@ class OllamaClient(LLMInterface, LLMBase):
                     continue
         return full_response
 
-    def extract_car_preferences(self, user_input: str) -> dict[str, Any]:
+    def extract_car_preferences(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> dict[str, Any]:
         """
         Extrair preferências de carro da entrada do usuário.
 
@@ -151,12 +175,13 @@ class OllamaClient(LLMInterface, LLMBase):
 
         Args:
             user_input: Entrada do usuário
+            previous_results: Resultados da busca anterior (para refinamento)
 
         Returns:
             Dicionário com preferências extraídas
 
         """
-        return super().extract_car_preferences(user_input)
+        return super().extract_car_preferences(user_input, previous_results)
 
     def generate_car_search_filters(self, preferences: dict[str, Any]) -> dict[str, Any]:
         """

@@ -22,6 +22,7 @@ class LLMPrompts:
     Você é um assistente especializado em extrair preferências de carros de conversas naturais.
 
     Extraia as seguintes informações do input do usuário:
+    - nome: nome completo do carro (ex: Audi A4, BMW X5, Toyota Corolla)
     - marca: marca do carro (ex: Audi, BMW, Toyota)
     - modelo: modelo específico (ex: A4, X5, Corolla)
     - faixa_preco: faixa de preço (economico, medio, luxo)
@@ -32,6 +33,11 @@ class LLMPrompts:
     - portas: número de portas (2, 4, 5)
     - quilometragem: quilometragem máxima aceita
     - uso: tipo de uso (cidade, estrada, trabalho, lazer)
+
+    IMPORTANTE: Se o usuário está refinando uma busca anterior (quando há contexto de resultados anteriores):
+    - Mantenha as preferências da busca anterior que não foram alteradas
+    - Adicione/modifique apenas as novas preferências mencionadas
+    - Se o usuário mencionar uma característica específica (ex: "cor Perolado"), use isso para filtrar os resultados anteriores
 
     Responda APENAS com um JSON válido contendo as preferências extraídas.
     Use null para informações não mencionadas.
@@ -47,7 +53,7 @@ class LLMPrompts:
     - Mapeie ranges para chaves com sufixo _min/_max (ex.: price_min, price_max).
     - Use exatamente estas chaves quando aplicável:
       - brand_name (marca do carro em texto)
-      - car_name (nome do carro em texto)
+      - car_name (nome completo do carro em texto - ex: "Audi A4", "BMW X5")
       - color_name, engine_name, car_model_name
       - fuel_type (gasoline, ethanol, flex, diesel, electric, hybrid)
       - transmission (manual, automatic, cvt, semi_automatic, dual_clutch)
@@ -57,9 +63,11 @@ class LLMPrompts:
       - mileage_min, mileage_max
       - doors_min, doors_max
     - Não inclua campos com valor null/None.
+    - Se houver preferência "nome" (nome completo do carro), use car_name.
 
     Exemplos de saída CORRETA:
     {"brand_name": "Audi"}
+    {"car_name": "Audi A4"}
     {"brand_name": "Audi", "price_max": 120000, "year_manufacture_min": 2018}
     """
 
@@ -67,13 +75,15 @@ class LLMPrompts:
     FORMAT_RESULTS_SYSTEM = """
     Você é um assistente virtual especializado em apresentar resultados de busca de carros.
 
-    Apresente os resultados de forma:
-    - Amigável e conversacional
-    - Destacando características importantes
-    - Usando emojis apropriados
-    - Formato de lista clara
-    - Sugerindo próximos passos
-    - Seja conciso e direto
+    INSTRUÇÕES OBRIGATÓRIAS:
+    - Apresente TODOS os carros encontrados em formato de lista numerada
+    - Para cada carro, inclua: marca, modelo, ano, preço, quilometragem, cor, combustível, transmissão
+    - Use emojis apropriados (🚗, 💰, ⛽, etc.)
+    - Seja detalhado e informativo
+    - Formate o preço em reais (R$)
+    - Sugira próximos passos ou perguntas
+    - Mínimo de 200 caracteres por resposta
+    - Use formatação clara com quebras de linha
     """
 
     # Prompt para geração de perguntas
@@ -102,7 +112,7 @@ class LLMPrompts:
     GENERATION_CONFIGS = {
         "extract_preferences": {"temperature": 0.1, "max_tokens": 200},
         "generate_filters": {"temperature": 0.1, "max_tokens": 200},
-        "format_results": {"temperature": 0.5, "max_tokens": 300},
+        "format_results": {"temperature": 0.5, "max_tokens": 1500},  # Aumentado para respostas detalhadas
         "generate_question": {"temperature": 0.7, "max_tokens": 150},
     }
 
@@ -153,23 +163,160 @@ class LLMInterface(ABC):
     def _format_cars_simple(self, cars: list[dict[str, Any]]) -> str:
         """Formatação simples como fallback."""
         if not cars:
-            return "😔 Não encontrei carros que atendam aos seus critérios."
+            return "😔 Não encontrei carros que atendam aos seus critérios. Que tal ajustarmos a busca?"
 
-        result_text = f"🚗 Encontrei {len(cars)} carro(s):\n\n"
+        result_text = f"🚗 Encontrei {len(cars)} carro(s) que atendem aos seus critérios:\n\n"
 
         for i, car in enumerate(cars, 1):
             try:
-                brand_name = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
-                car_name = car.get("car_name", {}).get("name", "N/A")
-                year = car.get("year_manufacture", "N/A")
-                price = car.get("price", 0)
+                # Usar dados simplificados se disponíveis
+                if "marca" in car:
+                    brand_name = car.get("marca", "N/A")
+                    car_name = car.get("modelo", "N/A")
+                    year = car.get("ano", "N/A")
+                    price = car.get("preco", 0)
+                    color = car.get("cor", "N/A")
+                    fuel = car.get("combustivel", "N/A")
+                    transmission = car.get("transmissao", "N/A")
+                    mileage = car.get("quilometragem", 0)
+                else:
+                    # Usar dados originais
+                    brand_name = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
+                    car_name = car.get("car_name", {}).get("name", "N/A")
+                    year = car.get("year_manufacture", "N/A")
+                    price = car.get("price", 0)
+                    color = car.get("color", {}).get("name", "N/A")
+                    fuel = car.get("fuel_type", "N/A")
+                    transmission = car.get("transmission", "N/A")
+                    mileage = car.get("mileage", 0)
 
-                result_text += f"{i}. **{brand_name} {car_name} ({year})** - R$ {price:,.2f}\n"
+                result_text += f"{i}. **{brand_name} {car_name} ({year})**\n"
+                result_text += f"   💰 Preço: R$ {price:,.2f}\n"
+                result_text += f"   🎨 Cor: {color}\n"
+                result_text += f"   ⛽ Combustível: {fuel}\n"
+                result_text += f"   🔧 Transmissão: {transmission}\n"
+                if mileage > 0:
+                    result_text += f"   🛣️ Quilometragem: {mileage:,} km\n"
+                result_text += "\n"
             except Exception as e:
                 logger.warning(f"Erro ao formatar carro {i}: {e}")
                 continue
 
+        result_text += "💡 Gostaria de saber mais detalhes sobre algum carro específico?"
         return result_text
+
+    def _format_cars_fast(self, cars: list[dict[str, Any]], user_preferences: dict[str, Any]) -> str:
+        """
+        Formatação rápida de carros sem usar LLM.
+
+        Args:
+            cars: Lista de carros encontrados
+            user_preferences: Preferências do usuário
+
+        Returns:
+            Resultados formatados rapidamente
+
+        """
+        if not cars:
+            return "😔 Não encontrei carros que atendam aos seus critérios. Que tal ajustarmos a busca?"
+
+        # Cabeçalho personalizado baseado nas preferências
+        header = self._generate_personalized_header(user_preferences, len(cars))
+
+        result_text = f"{header}\n\n"
+
+        # Formatar cada carro
+        for i, car in enumerate(cars, 1):
+            try:
+                car_info = self._format_single_car(car, i)
+                result_text += car_info + "\n"
+            except Exception as e:
+                logger.warning(f"Erro ao formatar carro {i}: {e}")
+                continue
+
+        # Rodapé com sugestões
+        footer = self._generate_suggestions_footer(user_preferences)
+        result_text += f"\n{footer}"
+
+        return result_text
+
+    def _generate_personalized_header(self, preferences: dict[str, Any], car_count: int) -> str:
+        """Gera cabeçalho personalizado baseado nas preferências."""
+        brand = preferences.get("marca", "")
+        year_range = ""
+        price_range = ""
+
+        if preferences.get("ano"):
+            year_range = f" do ano {preferences['ano']}"
+
+        if preferences.get("faixa_preco"):
+            price_range = f" na faixa {preferences['faixa_preco']}"
+
+        if brand:
+            return f"🚗 Encontrei {car_count} carro(s) {brand}{year_range}{price_range} que atendem aos seus critérios:"
+        else:
+            return f"🚗 Encontrei {car_count} carro(s) que atendem aos seus critérios:"
+
+    def _format_single_car(self, car: dict[str, Any], index: int) -> str:
+        """Formata um único carro com todas as informações."""
+        try:
+            # Extrair informações do carro
+            brand_name = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
+            car_name = car.get("car_name", {}).get("name", "N/A")
+            car_model = car.get("car_model", {}).get("name", "N/A")
+            year_manufacture = car.get("year_manufacture", "N/A")
+            year_model = car.get("year_model", "N/A")
+            price = car.get("price", 0)
+            color = car.get("color", {}).get("name", "N/A")
+            fuel = car.get("fuel_type", "N/A")
+            transmission = car.get("transmission", "N/A")
+            mileage = car.get("mileage", 0)
+            doors = car.get("doors", "N/A")
+
+            # Formatar preço
+            price_formatted = f"R$ {price:,.2f}" if price > 0 else "Preço não informado"
+
+            # Formatar quilometragem
+            mileage_formatted = f"{mileage:,} km" if mileage > 0 else "Não informado"
+
+            # Formatar ano (mostrar ambos se diferentes)
+            if year_manufacture != year_model and year_model != "N/A":
+                year_display = f"{year_manufacture} ({year_model})"
+            else:
+                year_display = year_manufacture
+
+            # Montar string do carro
+            car_text = f"{index}. **{brand_name} {car_name} {car_model} {year_display}**\n"
+            car_text += f"   💰 Preço: {price_formatted}\n"
+            car_text += f"   🎨 Cor: {color}\n"
+            car_text += f"   ⛽ Combustível: {fuel}\n"
+            car_text += f"   🔧 Transmissão: {transmission}\n"
+            car_text += f"   🛣️ Quilometragem: {mileage_formatted}\n"
+            car_text += f"   🚪 Portas: {doors}\n"
+
+            return car_text
+
+        except Exception as e:
+            logger.warning(f"Erro ao formatar carro {index}: {e}")
+            return f"{index}. **Erro ao carregar informações do carro**\n"
+
+    def _generate_suggestions_footer(self, preferences: dict[str, Any]) -> str:
+        """Gera rodapé com sugestões baseadas nas preferências."""
+        suggestions = []
+
+        if not preferences.get("faixa_preco"):
+            suggestions.append("💰 faixa de preço")
+        if not preferences.get("ano"):
+            suggestions.append("📅 ano do veículo")
+        if not preferences.get("cor"):
+            suggestions.append("🎨 cor preferida")
+        if not preferences.get("combustivel"):
+            suggestions.append("⛽ tipo de combustível")
+
+        if suggestions:
+            return f"💡 Para refinar sua busca, posso ajudar com: {', '.join(suggestions)}"
+        else:
+            return "💡 Gostaria de saber mais detalhes sobre algum carro específico?"
 
     def _validate_preferences(self, preferences: dict[str, Any]) -> dict[str, Any]:
         """Valida e limpa preferências extraídas."""
@@ -177,6 +324,7 @@ class LLMInterface(ABC):
 
         # Mapear campos válidos
         field_mapping = {
+            "nome": "nome",
             "marca": "marca",
             "modelo": "modelo",
             "faixa_preco": "faixa_preco",
@@ -198,6 +346,7 @@ class LLMInterface(ABC):
     def _convert_preferences_to_filters(self, preferences: dict[str, Any]) -> dict[str, Any]:
         """Modificar preferências em filtros MCP."""
         filters = {
+            "car_name": preferences.get("nome"),
             "brand_name": preferences.get("marca"),
             "price_min": None,
             "price_max": None,
@@ -389,18 +538,164 @@ class LLMInterface(ABC):
         else:
             return "🤔 Que outras características são importantes para você?"
 
-    def get_extract_preferences_prompt(self, user_input: str) -> tuple[str, str]:
+    def get_extract_preferences_prompt(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> tuple[str, str]:
         """
         Retorna o prompt e system prompt para extração de preferências.
 
         Args:
             user_input: Input do usuário
+            previous_results: Resultados da busca anterior (para refinamento)
 
         Returns:
             Tupla (system_prompt, user_prompt)
 
         """
-        return (LLMPrompts.EXTRACT_PREFERENCES_SYSTEM, f"Input do usuário: {user_input}\n\nExtraia as preferências:")
+        # Se há resultados anteriores, incluir contexto de refinamento
+        if previous_results:
+            context = self._build_refinement_context(previous_results)
+            user_prompt = f"""Contexto da busca anterior:
+{context}
+
+Nova solicitação do usuário: {user_input}
+
+Extraia as preferências considerando que o usuário quer refinar a busca anterior:"""
+        else:
+            user_prompt = f"Input do usuário: {user_input}\n\nExtraia as preferências:"
+
+        return (LLMPrompts.EXTRACT_PREFERENCES_SYSTEM, user_prompt)
+
+    def _build_refinement_context(self, previous_results: list[dict[str, Any]]) -> str:
+        """
+        Constrói contexto dos resultados anteriores para refinamento.
+
+        Args:
+            previous_results: Lista de carros da busca anterior
+
+        Returns:
+            String formatada com contexto dos resultados
+
+        """
+        if not previous_results:
+            return "Nenhum resultado anterior disponível."
+
+        context_lines = ["Resultados da busca anterior:"]
+
+        for i, car in enumerate(previous_results[:5], 1):  # Limitar a 5 carros para não sobrecarregar
+            try:
+                brand = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
+                car_name = car.get("car_name", {}).get("name", "N/A")
+                car_model = car.get("car_model", {}).get("name", "N/A")
+                year_manufacture = car.get("year_manufacture", "N/A")
+                year_model = car.get("year_model", "N/A")
+                price = car.get("price", 0)
+                color = car.get("color", {}).get("name", "N/A")
+                fuel = car.get("fuel_type", "N/A")
+                transmission = car.get("transmission", "N/A")
+                mileage = car.get("mileage", 0)
+                doors = car.get("doors", "N/A")
+
+                price_formatted = f"R$ {price:,.2f}" if price > 0 else "Preço não informado"
+                mileage_formatted = f"{mileage:,} km" if mileage > 0 else "Não informado"
+
+                # Formatar ano (mostrar ambos se diferentes)
+                if year_manufacture != year_model and year_model != "N/A":
+                    year_display = f"{year_manufacture} ({year_model})"
+                else:
+                    year_display = year_manufacture
+
+                car_info = f"{i}. {brand} {car_name} {car_model} {year_display} - {price_formatted} - Cor: {color} - Combustível: {fuel} - Transmissão: {transmission} - Quilometragem: {mileage_formatted} - Portas: {doors}"
+                context_lines.append(car_info)
+            except Exception as e:
+                logger.warning(f"Erro ao formatar carro {i} para contexto: {e}")
+                continue
+
+        return "\n".join(context_lines)
+
+    def is_refinement_request(self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None) -> bool:
+        """
+        Detecta se o usuário está tentando refinar uma busca anterior.
+
+        Args:
+            user_input: Input do usuário
+            previous_results: Resultados da busca anterior
+
+        Returns:
+            True se é uma solicitação de refinamento
+
+        """
+        if not previous_results:
+            return False
+
+        # Palavras-chave que indicam refinamento
+        refinement_keywords = [
+            "dessa lista",
+            "desses",
+            "desta lista",
+            "destes",
+            "me mostre os de",
+            "mostre apenas",
+            "filtre por",
+            "só os",
+            "apenas os",
+            "quero ver os",
+            "refinar",
+            "filtrar",
+            "especificar",
+        ]
+
+        user_input_lower = user_input.lower()
+
+        # Verificar se contém palavras-chave de refinamento
+        for keyword in refinement_keywords:
+            if keyword in user_input_lower:
+                return True
+
+        # Verificar se menciona características específicas que podem ser filtros
+        specific_characteristics = [
+            "cor",
+            "preço",
+            "ano",
+            "combustível",
+            "transmissão",
+            "portas",
+            "quilometragem",
+            "marca",
+            "modelo",
+        ]
+
+        return any(char in user_input_lower for char in specific_characteristics)
+
+    def is_clear_filters_request(self, user_input: str) -> bool:
+        """
+        Detecta se o usuário está pedindo para limpar os filtros e começar uma nova busca.
+
+        Args:
+            user_input: Input do usuário
+
+        Returns:
+            True se é uma solicitação de limpeza de filtros
+
+        """
+        clear_keywords = [
+            "limpe os filtros",
+            "limpar filtros",
+            "limpe filtros",
+            "nova busca",
+            "nova pesquisa",
+            "começar do zero",
+            "resetar",
+            "limpar tudo",
+            "começar novo",
+            "apagar filtros",
+            "remover filtros",
+            "zerar",
+        ]
+
+        user_input_lower = user_input.lower()
+
+        return any(keyword in user_input_lower for keyword in clear_keywords)
 
     def get_generate_filters_prompt(self, preferences: dict[str, Any]) -> tuple[str, str]:
         """
@@ -434,7 +729,12 @@ class LLMInterface(ABC):
         """
         return (
             LLMPrompts.FORMAT_RESULTS_SYSTEM,
-            f"Carros encontrados: {cars}\nPreferências do usuário: {user_preferences}\n\nApresente os resultados:",
+            f"""Carros encontrados ({len(cars)} carros):
+{cars}
+
+Preferências do usuário: {user_preferences}
+
+Apresente os resultados de forma detalhada e amigável, listando todos os carros com suas características principais:""",
         )
 
     def get_generate_question_prompt(self, preferences: dict[str, Any], missing_info: list[str]) -> tuple[str, str]:
@@ -516,7 +816,9 @@ class LLMInterface(ABC):
         """
         pass
 
-    def extract_car_preferences(self, user_input: str) -> dict[str, Any]:
+    def extract_car_preferences(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> dict[str, Any]:
         """
         Extrair preferências de carro do input do usuário.
 
@@ -524,12 +826,13 @@ class LLMInterface(ABC):
 
         Args:
             user_input: Input do usuário
+            previous_results: Resultados da busca anterior (para refinamento)
 
         Returns:
             Dicionário com preferências extraídas
 
         """
-        system_prompt, prompt = self.get_extract_preferences_prompt(user_input)
+        system_prompt, prompt = self.get_extract_preferences_prompt(user_input, previous_results)
         config = self.get_generation_config("extract_preferences")
 
         try:
@@ -620,29 +923,10 @@ class LLMInterface(ABC):
         if not cars:
             return "😔 Não encontrei carros que atendam aos seus critérios. Que tal ajustarmos a busca?"
 
-        # Preparar dados simplificados para a LLM
-        simplified_cars = self._simplify_cars_for_formatting(cars[:5])  # Limitar a 5 carros
+        logger.info(f"Carros formatados com sucesso: {len(cars)} carros encontrados")
 
-        logger.info(f"Carros formatados com sucesso: {len(simplified_cars)} carros encontrados")
-
-        # Usar prompts centralizados
-        system_prompt, prompt = self.get_format_results_prompt(simplified_cars, user_preferences)
-        config = self.get_generation_config("format_results")
-
-        try:
-            response = self.generate_response(
-                prompt=prompt,
-                system_prompt=system_prompt,
-                temperature=config["temperature"],
-                max_tokens=config["max_tokens"],
-            )
-            logger.info(f"Resposta gerada com sucesso: {len(response)} caracteres")
-            return response
-
-        except Exception as e:
-            logger.error(f"Erro ao formatar resultados: {e}")
-            # Fallback para formatação simples
-            return self._format_cars_simple(cars)
+        # Usar formatação rápida direta (sem LLM)
+        return self._format_cars_fast(cars, user_preferences)
 
     def generate_next_question(self, current_preferences: dict[str, Any], missing_info: list[str]) -> str:
         """

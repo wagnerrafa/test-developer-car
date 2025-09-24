@@ -35,7 +35,11 @@ class SimpleLLM(LLMInterface, LLMBase):
     ) -> str:
         """Gera resposta simples baseada no prompt."""
         # Resposta simples baseada no contexto
-        if "preferências" in prompt.lower() or "preferences" in prompt.lower():
+        if (
+            "preferências" in prompt.lower()
+            or "preferences" in prompt.lower()
+            or "extraia as preferências" in prompt.lower()
+        ):
             return self._generate_preferences_response(prompt)
         elif "filtros" in prompt.lower() or "filters" in prompt.lower():
             return self._generate_filters_response(prompt)
@@ -44,10 +48,12 @@ class SimpleLLM(LLMInterface, LLMBase):
         else:
             return "Resposta simples gerada."
 
-    def extract_car_preferences(self, user_input: str) -> dict[str, Any]:
+    def extract_car_preferences(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> dict[str, Any]:
         """Extrai preferências de forma simples usando implementação compartilhada."""
         # Usar implementação compartilhada da interface
-        return super().extract_car_preferences(user_input)
+        return super().extract_car_preferences(user_input, previous_results)
 
     def generate_car_search_filters(self, preferences: dict[str, Any]) -> dict[str, Any]:
         """Gera filtros de forma simples usando implementação compartilhada."""
@@ -68,8 +74,9 @@ class SimpleLLM(LLMInterface, LLMBase):
         """Gera resposta para extração de preferências."""
         return """```json
 {
+  "nome": "Audi A4",
   "marca": "Audi",
-  "modelo": null,
+  "modelo": "A4",
   "faixa_preco": null,
   "ano": null,
   "combustivel": null,
@@ -85,6 +92,7 @@ class SimpleLLM(LLMInterface, LLMBase):
         """Gera resposta para geração de filtros."""
         return """```json
 {
+  "car_name": "Audi A4",
   "brand_name": "Audi",
   "price_min": null,
   "price_max": null,
