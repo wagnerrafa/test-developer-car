@@ -525,7 +525,9 @@ class LLMInterface(ABC):
         else:
             return "🤔 Que outras características são importantes para você?"
 
-    def get_extract_preferences_prompt(self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None) -> tuple[str, str]:
+    def get_extract_preferences_prompt(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> tuple[str, str]:
         """
         Retorna o prompt e system prompt para extração de preferências.
 
@@ -607,10 +609,19 @@ Extraia as preferências considerando que o usuário quer refinar a busca anteri
 
         # Palavras-chave que indicam refinamento
         refinement_keywords = [
-            "dessa lista", "desses", "desta lista", "destes",
-            "me mostre os de", "mostre apenas", "filtre por",
-            "só os", "apenas os", "quero ver os",
-            "refinar", "filtrar", "especificar"
+            "dessa lista",
+            "desses",
+            "desta lista",
+            "destes",
+            "me mostre os de",
+            "mostre apenas",
+            "filtre por",
+            "só os",
+            "apenas os",
+            "quero ver os",
+            "refinar",
+            "filtrar",
+            "especificar",
         ]
 
         user_input_lower = user_input.lower()
@@ -622,8 +633,15 @@ Extraia as preferências considerando que o usuário quer refinar a busca anteri
 
         # Verificar se menciona características específicas que podem ser filtros
         specific_characteristics = [
-            "cor", "preço", "ano", "combustível", "transmissão",
-            "portas", "quilometragem", "marca", "modelo"
+            "cor",
+            "preço",
+            "ano",
+            "combustível",
+            "transmissão",
+            "portas",
+            "quilometragem",
+            "marca",
+            "modelo",
         ]
 
         for char in specific_characteristics:
@@ -751,7 +769,9 @@ Apresente os resultados de forma detalhada e amigável, listando todos os carros
         """
         pass
 
-    def extract_car_preferences(self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None) -> dict[str, Any]:
+    def extract_car_preferences(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> dict[str, Any]:
         """
         Extrair preferências de carro do input do usuário.
 
