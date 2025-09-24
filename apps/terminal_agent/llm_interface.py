@@ -22,6 +22,7 @@ class LLMPrompts:
     Você é um assistente especializado em extrair preferências de carros de conversas naturais.
 
     Extraia as seguintes informações do input do usuário:
+    - nome: nome completo do carro (ex: Audi A4, BMW X5, Toyota Corolla)
     - marca: marca do carro (ex: Audi, BMW, Toyota)
     - modelo: modelo específico (ex: A4, X5, Corolla)
     - faixa_preco: faixa de preço (economico, medio, luxo)
@@ -52,7 +53,7 @@ class LLMPrompts:
     - Mapeie ranges para chaves com sufixo _min/_max (ex.: price_min, price_max).
     - Use exatamente estas chaves quando aplicável:
       - brand_name (marca do carro em texto)
-      - car_name (nome do carro em texto)
+      - car_name (nome completo do carro em texto - ex: "Audi A4", "BMW X5")
       - color_name, engine_name, car_model_name
       - fuel_type (gasoline, ethanol, flex, diesel, electric, hybrid)
       - transmission (manual, automatic, cvt, semi_automatic, dual_clutch)
@@ -62,9 +63,11 @@ class LLMPrompts:
       - mileage_min, mileage_max
       - doors_min, doors_max
     - Não inclua campos com valor null/None.
+    - Se houver preferência "nome" (nome completo do carro), use car_name.
 
     Exemplos de saída CORRETA:
     {"brand_name": "Audi"}
+    {"car_name": "Audi A4"}
     {"brand_name": "Audi", "price_max": 120000, "year_manufacture_min": 2018}
     """
 
@@ -260,7 +263,9 @@ class LLMInterface(ABC):
             # Extrair informações do carro
             brand_name = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
             car_name = car.get("car_name", {}).get("name", "N/A")
-            year = car.get("year_manufacture", "N/A")
+            car_model = car.get("car_model", {}).get("name", "N/A")
+            year_manufacture = car.get("year_manufacture", "N/A")
+            year_model = car.get("year_model", "N/A")
             price = car.get("price", 0)
             color = car.get("color", {}).get("name", "N/A")
             fuel = car.get("fuel_type", "N/A")
@@ -274,8 +279,14 @@ class LLMInterface(ABC):
             # Formatar quilometragem
             mileage_formatted = f"{mileage:,} km" if mileage > 0 else "Não informado"
 
+            # Formatar ano (mostrar ambos se diferentes)
+            if year_manufacture != year_model and year_model != "N/A":
+                year_display = f"{year_manufacture} ({year_model})"
+            else:
+                year_display = year_manufacture
+
             # Montar string do carro
-            car_text = f"{index}. **{brand_name} {car_name} ({year})**\n"
+            car_text = f"{index}. **{brand_name} {car_name} {car_model} {year_display}**\n"
             car_text += f"   💰 Preço: {price_formatted}\n"
             car_text += f"   🎨 Cor: {color}\n"
             car_text += f"   ⛽ Combustível: {fuel}\n"
@@ -313,6 +324,7 @@ class LLMInterface(ABC):
 
         # Mapear campos válidos
         field_mapping = {
+            "nome": "nome",
             "marca": "marca",
             "modelo": "modelo",
             "faixa_preco": "faixa_preco",
@@ -334,6 +346,7 @@ class LLMInterface(ABC):
     def _convert_preferences_to_filters(self, preferences: dict[str, Any]) -> dict[str, Any]:
         """Modificar preferências em filtros MCP."""
         filters = {
+            "car_name": preferences.get("nome"),
             "brand_name": preferences.get("marca"),
             "price_min": None,
             "price_max": None,
@@ -573,7 +586,9 @@ Extraia as preferências considerando que o usuário quer refinar a busca anteri
             try:
                 brand = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
                 car_name = car.get("car_name", {}).get("name", "N/A")
-                year = car.get("year_manufacture", "N/A")
+                car_model = car.get("car_model", {}).get("name", "N/A")
+                year_manufacture = car.get("year_manufacture", "N/A")
+                year_model = car.get("year_model", "N/A")
                 price = car.get("price", 0)
                 color = car.get("color", {}).get("name", "N/A")
                 fuel = car.get("fuel_type", "N/A")
@@ -584,7 +599,13 @@ Extraia as preferências considerando que o usuário quer refinar a busca anteri
                 price_formatted = f"R$ {price:,.2f}" if price > 0 else "Preço não informado"
                 mileage_formatted = f"{mileage:,} km" if mileage > 0 else "Não informado"
 
-                car_info = f"{i}. {brand} {car_name} ({year}) - {price_formatted} - Cor: {color} - Combustível: {fuel} - Transmissão: {transmission} - Quilometragem: {mileage_formatted} - Portas: {doors}"
+                # Formatar ano (mostrar ambos se diferentes)
+                if year_manufacture != year_model and year_model != "N/A":
+                    year_display = f"{year_manufacture} ({year_model})"
+                else:
+                    year_display = year_manufacture
+
+                car_info = f"{i}. {brand} {car_name} {car_model} {year_display} - {price_formatted} - Cor: {color} - Combustível: {fuel} - Transmissão: {transmission} - Quilometragem: {mileage_formatted} - Portas: {doors}"
                 context_lines.append(car_info)
             except Exception as e:
                 logger.warning(f"Erro ao formatar carro {i} para contexto: {e}")
@@ -644,11 +665,37 @@ Extraia as preferências considerando que o usuário quer refinar a busca anteri
             "modelo",
         ]
 
-        for char in specific_characteristics:
-            if char in user_input_lower:
-                return True
+        return any(char in user_input_lower for char in specific_characteristics)
 
-        return False
+    def is_clear_filters_request(self, user_input: str) -> bool:
+        """
+        Detecta se o usuário está pedindo para limpar os filtros e começar uma nova busca.
+
+        Args:
+            user_input: Input do usuário
+
+        Returns:
+            True se é uma solicitação de limpeza de filtros
+
+        """
+        clear_keywords = [
+            "limpe os filtros",
+            "limpar filtros",
+            "limpe filtros",
+            "nova busca",
+            "nova pesquisa",
+            "começar do zero",
+            "resetar",
+            "limpar tudo",
+            "começar novo",
+            "apagar filtros",
+            "remover filtros",
+            "zerar",
+        ]
+
+        user_input_lower = user_input.lower()
+
+        return any(keyword in user_input_lower for keyword in clear_keywords)
 
     def get_generate_filters_prompt(self, preferences: dict[str, Any]) -> tuple[str, str]:
         """

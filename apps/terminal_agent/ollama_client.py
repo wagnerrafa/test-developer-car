@@ -165,7 +165,9 @@ class OllamaClient(LLMInterface, LLMBase):
                     continue
         return full_response
 
-    def extract_car_preferences(self, user_input: str) -> dict[str, Any]:
+    def extract_car_preferences(
+        self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None
+    ) -> dict[str, Any]:
         """
         Extrair preferências de carro da entrada do usuário.
 
@@ -173,12 +175,13 @@ class OllamaClient(LLMInterface, LLMBase):
 
         Args:
             user_input: Entrada do usuário
+            previous_results: Resultados da busca anterior (para refinamento)
 
         Returns:
             Dicionário com preferências extraídas
 
         """
-        return super().extract_car_preferences(user_input)
+        return super().extract_car_preferences(user_input, previous_results)
 
     def generate_car_search_filters(self, preferences: dict[str, Any]) -> dict[str, Any]:
         """

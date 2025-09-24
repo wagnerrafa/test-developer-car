@@ -234,6 +234,11 @@ class Command(BaseCommand):
                 transient=True,
             ) as progress:
 
+                # Verificar se é uma solicitação de limpeza de filtros
+                if self.llm.is_clear_filters_request(user_input):
+                    self._clear_conversation_state()
+                    return "🔄 Filtros limpos! Agora posso te ajudar com uma nova busca. O que você está procurando?"
+
                 # Passo 1: Extrair preferências usando Ollama
                 task1 = progress.add_task("🤖 Analisando sua solicitação com IA...", total=None)
                 logger.info("Analisando sua solicitação com IA...")
@@ -322,6 +327,15 @@ class Command(BaseCommand):
             missing.append("ano")
 
         return missing
+
+    def _clear_conversation_state(self):
+        """Limpa o estado da conversa para começar uma nova busca."""
+        self.conversation_state = {
+            "preferences": {},
+            "search_history": [],
+            "current_results": [],
+        }
+        logger.info("Estado da conversa limpo - iniciando nova busca")
 
     def _search_cars(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Executa busca de carros via MCP."""

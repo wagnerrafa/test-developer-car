@@ -1,5 +1,5 @@
 ---
-description: always run make lint-fix e make format before git add
+description: always run make lint-fix e make format before gitadd
 globs:
 alwaysApply: true
 ---
