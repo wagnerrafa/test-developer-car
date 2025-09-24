@@ -33,6 +33,11 @@ class LLMPrompts:
     - quilometragem: quilometragem máxima aceita
     - uso: tipo de uso (cidade, estrada, trabalho, lazer)
 
+    IMPORTANTE: Se o usuário está refinando uma busca anterior (quando há contexto de resultados anteriores):
+    - Mantenha as preferências da busca anterior que não foram alteradas
+    - Adicione/modifique apenas as novas preferências mencionadas
+    - Se o usuário mencionar uma característica específica (ex: "cor Perolado"), use isso para filtrar os resultados anteriores
+
     Responda APENAS com um JSON válido contendo as preferências extraídas.
     Use null para informações não mencionadas.
     """
@@ -520,18 +525,112 @@ class LLMInterface(ABC):
         else:
             return "🤔 Que outras características são importantes para você?"
 
-    def get_extract_preferences_prompt(self, user_input: str) -> tuple[str, str]:
+    def get_extract_preferences_prompt(self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None) -> tuple[str, str]:
         """
         Retorna o prompt e system prompt para extração de preferências.
 
         Args:
             user_input: Input do usuário
+            previous_results: Resultados da busca anterior (para refinamento)
 
         Returns:
             Tupla (system_prompt, user_prompt)
 
         """
-        return (LLMPrompts.EXTRACT_PREFERENCES_SYSTEM, f"Input do usuário: {user_input}\n\nExtraia as preferências:")
+        # Se há resultados anteriores, incluir contexto de refinamento
+        if previous_results:
+            context = self._build_refinement_context(previous_results)
+            user_prompt = f"""Contexto da busca anterior:
+{context}
+
+Nova solicitação do usuário: {user_input}
+
+Extraia as preferências considerando que o usuário quer refinar a busca anterior:"""
+        else:
+            user_prompt = f"Input do usuário: {user_input}\n\nExtraia as preferências:"
+
+        return (LLMPrompts.EXTRACT_PREFERENCES_SYSTEM, user_prompt)
+
+    def _build_refinement_context(self, previous_results: list[dict[str, Any]]) -> str:
+        """
+        Constrói contexto dos resultados anteriores para refinamento.
+
+        Args:
+            previous_results: Lista de carros da busca anterior
+
+        Returns:
+            String formatada com contexto dos resultados
+
+        """
+        if not previous_results:
+            return "Nenhum resultado anterior disponível."
+
+        context_lines = ["Resultados da busca anterior:"]
+
+        for i, car in enumerate(previous_results[:5], 1):  # Limitar a 5 carros para não sobrecarregar
+            try:
+                brand = car.get("car_name", {}).get("brand", {}).get("name", "N/A")
+                car_name = car.get("car_name", {}).get("name", "N/A")
+                year = car.get("year_manufacture", "N/A")
+                price = car.get("price", 0)
+                color = car.get("color", {}).get("name", "N/A")
+                fuel = car.get("fuel_type", "N/A")
+                transmission = car.get("transmission", "N/A")
+                mileage = car.get("mileage", 0)
+                doors = car.get("doors", "N/A")
+
+                price_formatted = f"R$ {price:,.2f}" if price > 0 else "Preço não informado"
+                mileage_formatted = f"{mileage:,} km" if mileage > 0 else "Não informado"
+
+                car_info = f"{i}. {brand} {car_name} ({year}) - {price_formatted} - Cor: {color} - Combustível: {fuel} - Transmissão: {transmission} - Quilometragem: {mileage_formatted} - Portas: {doors}"
+                context_lines.append(car_info)
+            except Exception as e:
+                logger.warning(f"Erro ao formatar carro {i} para contexto: {e}")
+                continue
+
+        return "\n".join(context_lines)
+
+    def is_refinement_request(self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None) -> bool:
+        """
+        Detecta se o usuário está tentando refinar uma busca anterior.
+
+        Args:
+            user_input: Input do usuário
+            previous_results: Resultados da busca anterior
+
+        Returns:
+            True se é uma solicitação de refinamento
+
+        """
+        if not previous_results:
+            return False
+
+        # Palavras-chave que indicam refinamento
+        refinement_keywords = [
+            "dessa lista", "desses", "desta lista", "destes",
+            "me mostre os de", "mostre apenas", "filtre por",
+            "só os", "apenas os", "quero ver os",
+            "refinar", "filtrar", "especificar"
+        ]
+
+        user_input_lower = user_input.lower()
+
+        # Verificar se contém palavras-chave de refinamento
+        for keyword in refinement_keywords:
+            if keyword in user_input_lower:
+                return True
+
+        # Verificar se menciona características específicas que podem ser filtros
+        specific_characteristics = [
+            "cor", "preço", "ano", "combustível", "transmissão",
+            "portas", "quilometragem", "marca", "modelo"
+        ]
+
+        for char in specific_characteristics:
+            if char in user_input_lower:
+                return True
+
+        return False
 
     def get_generate_filters_prompt(self, preferences: dict[str, Any]) -> tuple[str, str]:
         """
@@ -652,7 +751,7 @@ Apresente os resultados de forma detalhada e amigável, listando todos os carros
         """
         pass
 
-    def extract_car_preferences(self, user_input: str) -> dict[str, Any]:
+    def extract_car_preferences(self, user_input: str, previous_results: Optional[list[dict[str, Any]]] = None) -> dict[str, Any]:
         """
         Extrair preferências de carro do input do usuário.
 
@@ -660,12 +759,13 @@ Apresente os resultados de forma detalhada e amigável, listando todos os carros
 
         Args:
             user_input: Input do usuário
+            previous_results: Resultados da busca anterior (para refinamento)
 
         Returns:
             Dicionário com preferências extraídas
 
         """
-        system_prompt, prompt = self.get_extract_preferences_prompt(user_input)
+        system_prompt, prompt = self.get_extract_preferences_prompt(user_input, previous_results)
         config = self.get_generation_config("extract_preferences")
 
         try:

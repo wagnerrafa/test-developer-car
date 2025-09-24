@@ -189,10 +189,7 @@ class Command(BaseCommand):
         """Exibe mensagem de boas-vindas."""
         # Detectar tipo de LLM
         llm_type = type(self.llm).__name__
-        if "Ollama" in llm_type:
-            llm_info = f"Powered by Ollama ({self.llm.model})"
-        else:
-            llm_info = "Powered by SimpleLLM"
+        llm_info = f"Powered by Ollama ({self.llm.model})" if "Ollama" in llm_type else "Powered by SimpleLLM"
 
         welcome_text = Text()
         welcome_text.append("🚗 ", style="bold blue")
@@ -240,7 +237,23 @@ class Command(BaseCommand):
                 # Passo 1: Extrair preferências usando Ollama
                 task1 = progress.add_task("🤖 Analisando sua solicitação com IA...", total=None)
                 logger.info("Analisando sua solicitação com IA...")
-                preferences = self.llm.extract_car_preferences(user_input)
+                # Passar resultados anteriores para refinamento
+                previous_results = self.conversation_state.get("current_results", [])
+
+                # Verificar se é uma solicitação de refinamento
+                is_refinement = self.llm.is_refinement_request(user_input, previous_results)
+
+                if is_refinement and previous_results:
+                    # Para refinamento, manter preferências anteriores e adicionar novas
+                    preferences = self.llm.extract_car_preferences(user_input, previous_results)
+                    # Manter preferências anteriores que não foram alteradas
+                    for key, value in self.conversation_state["preferences"].items():
+                        if key not in preferences or preferences[key] is None:
+                            preferences[key] = value
+                else:
+                    # Busca normal
+                    preferences = self.llm.extract_car_preferences(user_input, previous_results)
+
                 progress.update(task1, description="✅ Preferências extraídas com sucesso!")
 
                 # Atualizar estado da conversa
